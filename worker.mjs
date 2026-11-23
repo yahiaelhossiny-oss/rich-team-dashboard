@@ -129,6 +129,9 @@ function reply(body, status = 200, extra = {}) {
 const sharedDesign = 'Design and motion (shared)';
 const planActivities = [...activities, sharedDesign];
 const planPrefix = 'activity-plan:';
+const baselineKey = 'retainer-baseline:2026-05';
+const baselineFrom = '2026-05';
+const baselineSource = '2026-11';
 const planKey = (month, client) => planPrefix + month + ':' + encodeURIComponent(client);
 
 async function activityPlans(env) {
@@ -143,6 +146,24 @@ async function activityPlans(env) {
   } while (cursor);
   return rows;
 }
+function recurringPlan(baseline, month, client) {
+  if (month < baselineFrom || !baseline || !Object.hasOwn(baseline,client)) return null;
+  return {month,client,hours:baseline[client]};
+}
+
+async function effectiveActivityPlans(env, months) {
+  const [explicit,baseline] = await Promise.all([activityPlans(env),env.REPORTS.get(baselineKey,'json')]);
+  const plans = new Map(explicit.map(plan => [planKey(plan.month,plan.client),plan]));
+  for (const month of months ?? []) {
+    for (const client of Object.keys(baseline ?? {})) {
+      const key = planKey(month,client);
+      const recurring = recurringPlan(baseline,month,client);
+      if (recurring && !plans.has(key)) plans.set(key,recurring);
+    }
+  }
+  return [...plans.values()].filter(plan => Object.keys(plan.hours).length);
+}
+
 const escapeHtml = value => String(value).replace(/[&<>"']/g, character => ({
   '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'
 })[character]);
@@ -162,7 +183,22 @@ async function plannedHours(request, env, user) {
   const month = fields.get('month') || report.currentMonth;
   if (!clients.includes(client) || !/^\d{4}-(0[1-9]|1[0-2])$/.test(month)) return reply('Select a valid client and month.', 400);
   const key = planKey(month, client);
+  const baseline = await env.REPORTS.get(baselineKey,'json');
+  const recurring = recurringPlan(baseline,month,client);
+  const savedURL = '/planned-hours?' + new URLSearchParams({client, month, saved:'1'});
   if (post) {
+    if (fields.get('action') === 'activate-baseline') {
+      if (baseline) return reply('',303,{Location:savedURL});
+      const source = (await activityPlans(env)).filter(plan => plan.month === baselineSource && Object.keys(plan.hours).length);
+      if (!source.length) return reply('No November retainer plans are available to copy.',409);
+      const defaults = Object.fromEntries(source.map(plan => [plan.client,plan.hours]));
+      await env.REPORTS.put(baselineKey,JSON.stringify(defaults));
+      return reply('',303,{Location:savedURL});
+    }
+    if (fields.get('action') === 'use-baseline') {
+      if (recurring) await env.REPORTS.delete(key);
+      return reply('',303,{Location:savedURL});
+    }
     const hours = {};
     for (const activity of planActivities) {
       const value = fields.get(activity);
@@ -176,11 +212,18 @@ async function plannedHours(request, env, user) {
       return reply('Use either the shared design and motion budget or the two separate budgets for this client and month.', 400);
     }
     const plan = {client, month, hours};
-    if (Object.keys(hours).length) await env.REPORTS.put(key, JSON.stringify(plan), {metadata:plan});
+    if (Object.keys(hours).length || recurring) await env.REPORTS.put(key, JSON.stringify(plan), {metadata:plan});
     else await env.REPORTS.delete(key);
-    return reply('', 303, {Location:'/planned-hours?' + new URLSearchParams({client, month, saved:'1'})});
+    return reply('', 303, {Location:savedURL});
   }
-  const current = await env.REPORTS.get(key, 'json');
+  const explicit = await env.REPORTS.get(key, 'json');
+  const current = explicit ?? recurring;
+  const hidden = '<input type="hidden" name="client" value="' + escapeHtml(client) + '"><input type="hidden" name="month" value="' + month + '">';
+  const baselineControls = !baseline
+    ? '<form method="post">' + hidden + '<button name="action" value="activate-baseline">Use November 2026 plans as monthly baseline from May 2026</button></form>'
+    : recurring ? '<p>' + (explicit ? 'This month has its own plan.' : 'Using the recurring monthly baseline.') + '</p>' +
+      (explicit ? '<form method="post">' + hidden + '<button name="action" value="use-baseline">Restore monthly baseline</button></form>' : '')
+    : '';
   const options = clients.map(name => '<option' + (name === client ? ' selected' : '') + '>' + escapeHtml(name) + '</option>').join('');
   const activityFields = planActivities.map(name => '<label>' + name + '<input type="number" min="0" max="100000" step="0.01" name="' + name +
     '" value="' + (current?.hours[name] ?? '') + '"></label>').join('');
@@ -191,7 +234,7 @@ async function plannedHours(request, env, user) {
     <main><h1>Set planned hours</h1><p><a href="/">Back to dashboard</a></p>
     <section><form method="get" class="filters"><label>Client<select name="client">${options}</select></label>
     <label>Month<input type="month" name="month" value="${month}" required></label><button>Load plan</button></form>
-    ${notice}<h2>${escapeHtml(client)} · ${month}</h2>
+    ${notice}<h2>${escapeHtml(client)} · ${month}</h2>${baselineControls}
     <p>Enter the monthly retainer hours. For older retainers with one design and motion allowance, use the shared field and leave the two separate fields blank. Leave unbudgeted activities blank.</p>
     <form method="post"><input type="hidden" name="client" value="${escapeHtml(client)}"><input type="hidden" name="month" value="${month}">
     <div class="plan-grid">${activityFields}</div><button>Save planned hours</button></form></section></main></html>`, 200, {'Content-Type':'text/html; charset=utf-8'});
@@ -220,7 +263,9 @@ async function clientPortal(request, env, client) {
     return reply('Select a valid reporting period.', 400);
   }
   const period = months.filter(month => month >= from && month <= through);
-  const results = await Promise.all(period.map(month => env.REPORTS.get(planKey(month,client),'json')));
+  const baseline = await env.REPORTS.get(baselineKey,'json');
+  const results = await Promise.all(period.map(async month =>
+    (await env.REPORTS.get(planKey(month,client),'json')) ?? recurringPlan(baseline,month,client)));
   const plans = new Map();
   results.forEach((plan,index) => {
     if (plan?.client !== client || plan.month !== period[index]) return;
@@ -281,7 +326,7 @@ export default {
       const snapshot = await env.REPORTS.get('snapshot');
       if (!snapshot) return reply('{"pending":true}', 200, {'Content-Type':'application/json'});
       const report = JSON.parse(snapshot);
-      report.activityPlans = await activityPlans(env);
+      report.activityPlans = await effectiveActivityPlans(env,report.months);
       report.canEditPlans = user.admin;
       return reply(JSON.stringify(report), 200, {'Content-Type':'application/json'});
     }
