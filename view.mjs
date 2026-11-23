@@ -398,10 +398,12 @@ function render() {
   }
 
   const total = logs.reduce((sum, row) => sum + row[3], 0);
-  const planned = allocations.reduce((sum, item) => sum + item.hours, 0);
+  const recordedPlan = member ? allocations.map(item => item.hours)
+    : planRows.flatMap(plan => Object.values(plan.hours));
+  const planned = recordedPlan.reduce((sum, value) => sum + value, 0);
   $('metrics').replaceChildren(...[
     ['Logged hours', hours(positiveHours(total))],
-    ['Recorded planned hours', allocations.length ? hours(planned) : 'Unset'],
+    [member ? 'Team member planned hours' : 'Retainer planned hours', recordedPlan.length ? hours(planned) : 'Unset'],
     ['Tasks created', String(tasks.length)],
   ].map(([label, value]) => {
     const tile = el('div', undefined, 'metric');
