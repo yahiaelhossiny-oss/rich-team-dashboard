@@ -126,6 +126,8 @@ function reply(body, status = 200, extra = {}) {
 }
 
 
+const sharedDesign = 'Design and motion (shared)';
+const planActivities = [...activities, sharedDesign];
 const planPrefix = 'activity-plan:';
 const planKey = (month, client) => planPrefix + month + ':' + encodeURIComponent(client);
 
@@ -162,13 +164,16 @@ async function plannedHours(request, env, user) {
   const key = planKey(month, client);
   if (post) {
     const hours = {};
-    for (const activity of activities) {
+    for (const activity of planActivities) {
       const value = fields.get(activity);
       if (value === null || value === '') continue;
       if (typeof value !== 'string' || !/^\d+(?:\.\d{1,2})?$/.test(value) || Number(value) > 100000) {
         return reply('Enter hours between 0 and 100,000 with up to two decimal places. Leave a field blank to clear its plan.', 400);
       }
       hours[activity] = Number(value);
+    }
+    if (Object.hasOwn(hours,sharedDesign) && ['Design','Motion design and animation'].some(activity => Object.hasOwn(hours,activity))) {
+      return reply('Use either the shared design and motion budget or the two separate budgets for this client and month.', 400);
     }
     const plan = {client, month, hours};
     if (Object.keys(hours).length) await env.REPORTS.put(key, JSON.stringify(plan), {metadata:plan});
@@ -177,7 +182,7 @@ async function plannedHours(request, env, user) {
   }
   const current = await env.REPORTS.get(key, 'json');
   const options = clients.map(name => '<option' + (name === client ? ' selected' : '') + '>' + escapeHtml(name) + '</option>').join('');
-  const activityFields = activities.map(name => '<label>' + name + '<input type="number" min="0" max="100000" step="0.01" name="' + name +
+  const activityFields = planActivities.map(name => '<label>' + name + '<input type="number" min="0" max="100000" step="0.01" name="' + name +
     '" value="' + (current?.hours[name] ?? '') + '"></label>').join('');
   const notice = fields.has('saved') ? '<p role="status">Planned hours saved.</p>' : '';
   return reply(`<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
@@ -187,7 +192,7 @@ async function plannedHours(request, env, user) {
     <section><form method="get" class="filters"><label>Client<select name="client">${options}</select></label>
     <label>Month<input type="month" name="month" value="${month}" required></label><button>Load plan</button></form>
     ${notice}<h2>${escapeHtml(client)} · ${month}</h2>
-    <p>Enter the client's total monthly hours budget for each activity. Leave an activity blank when no budget has been set.</p>
+    <p>Enter the monthly retainer hours. For older retainers with one design and motion allowance, use the shared field and leave the two separate fields blank. Leave unbudgeted activities blank.</p>
     <form method="post"><input type="hidden" name="client" value="${escapeHtml(client)}"><input type="hidden" name="month" value="${month}">
     <div class="plan-grid">${activityFields}</div><button>Save planned hours</button></form></section></main></html>`, 200, {'Content-Type':'text/html; charset=utf-8'});
 }

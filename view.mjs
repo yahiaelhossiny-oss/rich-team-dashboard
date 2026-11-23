@@ -27,7 +27,8 @@ export default {
 <main>
 <h1>Client delivery</h1>
 <div class="filters">
-<label>Month <select id="month"></select></label>
+<label>From month <select id="month"></select></label>
+<label>To month <select id="through"></select></label>
 <label>Client <select id="client"></select></label>
 <label>Team member <select id="member"></select></label>
 </div>
@@ -39,18 +40,23 @@ export default {
 <button aria-pressed="false" data-view="tasks">Tasks &amp; statuses</button>
 </nav>
 <section id="report" aria-live="polite"></section>
+<section id="client-export" aria-label="Client PDF export"></section>
+<section id="print-report"></section>
 </main>
 </html>
 `},
   "/style.css": {type: "text/css; charset=utf-8", body: String.raw`
 :root{font-family:system-ui,sans-serif;color:#00162e;background:#ebe9e6}
-*{box-sizing:border-box}body{margin:0}header{background:#00162e;color:#fff;display:flex;justify-content:space-between;align-items:center;gap:1rem;padding:1.2rem max(5vw,1rem)}.brand{display:flex;align-items:center;gap:.55rem;font-weight:850;letter-spacing:.1em}.header-tools{display:flex;align-items:center;justify-content:flex-end;gap:.85rem;flex-wrap:wrap}.header-tools a{color:white}.header-tools button{padding:.3rem .65rem}.account-panel{max-width:35rem}.account-panel form,.account-panel label{display:grid;gap:.45rem}.account-panel form{gap:.8rem}.account-panel button{justify-self:start}.brand img{display:block;filter:brightness(0) invert(1);object-fit:contain}.brand span{color:#ff6b61}#sync{font-size:.85rem}main{max-width:1350px;margin:auto;padding:2.3rem max(4vw,1rem)}h1{font-size:clamp(2.5rem,6vw,4.8rem);margin:0 0 1.3rem;letter-spacing:-.07em}h2{letter-spacing:-.035em}.filters,.metrics,nav{display:flex;gap:.8rem;flex-wrap:wrap}.filters label{display:grid;gap:.3rem;font-weight:650;font-size:.8rem;flex:1 1 175px;max-width:320px}select,input,button{font:inherit;padding:.65rem .8rem;border:1px solid #526678;border-radius:.5rem;background:white;color:inherit}button{cursor:pointer;font-weight:650}button[aria-pressed=true]{background:#00162e;color:white;border-color:#00162e}.metrics{margin:1.3rem 0}.metric{background:#e1ecfd;border-radius:.8rem;padding:1rem;flex:1 1 160px}.metric strong{display:block;font-size:1.8rem;letter-spacing:-.04em}section{margin:1rem 0;background:white;padding:1rem 1.2rem;border-radius:.8rem}.scroll{overflow:auto}table{width:100%;border-collapse:collapse;text-align:left}th,td{padding:.7rem .6rem;border-bottom:1px solid #e1ecfd;vertical-align:top}th{font-size:.76rem;text-transform:uppercase;letter-spacing:.045em;color:#005371}a{color:#005371}p{color:#005371}.status{display:inline-block;background:#e1ecfd;padding:.2rem .5rem;border-radius:.4rem}.table-filters{display:flex;flex-wrap:wrap;gap:.65rem;margin-bottom:1rem}.table-filters label{display:grid;gap:.3rem}button:focus-visible,select:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid #0085c2;outline-offset:2px}.activity-client{border-top:1px solid #e1ecfd;margin-top:1.5rem;padding-top:.5rem}.activity-client h3{margin-bottom:.25rem}.activity-client p{margin-top:.25rem}.plan-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem;margin:1rem 0}.plan-grid label{display:grid;gap:.4rem}.filters button{align-self:end}
+*{box-sizing:border-box}body{margin:0}header{background:#00162e;color:#fff;display:flex;justify-content:space-between;align-items:center;gap:1rem;padding:1.2rem max(5vw,1rem)}.brand{display:flex;align-items:center;gap:.55rem;font-weight:850;letter-spacing:.1em}.header-tools{display:flex;align-items:center;justify-content:flex-end;gap:.85rem;flex-wrap:wrap}.header-tools a{color:white}.header-tools button{padding:.3rem .65rem}.account-panel{max-width:35rem}.account-panel form,.account-panel label{display:grid;gap:.45rem}.account-panel form{gap:.8rem}.account-panel button{justify-self:start}.brand img{display:block;filter:brightness(0) invert(1);object-fit:contain}.brand span{color:#ff6b61}#sync{font-size:.85rem}main{max-width:1350px;margin:auto;padding:2.3rem max(4vw,1rem)}h1{font-size:clamp(2.5rem,6vw,4.8rem);margin:0 0 1.3rem;letter-spacing:-.07em}h2{letter-spacing:-.035em}.filters,.metrics,nav{display:flex;gap:.8rem;flex-wrap:wrap}.filters label{display:grid;gap:.3rem;font-weight:650;font-size:.8rem;flex:1 1 175px;max-width:320px}select,input,button{font:inherit;padding:.65rem .8rem;border:1px solid #526678;border-radius:.5rem;background:white;color:inherit}button{cursor:pointer;font-weight:650}button[aria-pressed=true]{background:#00162e;color:white;border-color:#00162e}.metrics{margin:1.3rem 0}.metric{background:#e1ecfd;border-radius:.8rem;padding:1rem;flex:1 1 160px}.metric strong{display:block;font-size:1.8rem;letter-spacing:-.04em}section{margin:1rem 0;background:white;padding:1rem 1.2rem;border-radius:.8rem}.scroll{overflow:auto}table{width:100%;border-collapse:collapse;text-align:left}th,td{padding:.7rem .6rem;border-bottom:1px solid #e1ecfd;vertical-align:top}th{font-size:.76rem;text-transform:uppercase;letter-spacing:.045em;color:#005371}a{color:#005371}p{color:#005371}.status{display:inline-block;background:#e1ecfd;padding:.2rem .5rem;border-radius:.4rem}.table-filters{display:flex;flex-wrap:wrap;gap:.65rem;margin-bottom:1rem}.table-filters label{display:grid;gap:.3rem}button:focus-visible,select:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid #0085c2;outline-offset:2px}.activity-client{border-top:1px solid #e1ecfd;margin-top:1.5rem;padding-top:.5rem}.activity-client h3{margin-bottom:.25rem}.activity-client p{margin-top:.25rem}.plan-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem;margin:1rem 0}.plan-grid label{display:grid;gap:.4rem}.filters button{align-self:end}#print-report{display:none}#client-export label{display:flex;align-items:center;gap:.4rem}
+@media print{@page{margin:16mm}body{background:white;color:#00162e}header,main>*{display:none!important}main{padding:0;max-width:none}main>#print-report{display:block!important;margin:0;padding:0}#print-report h1{font-size:32pt;margin:8mm 0 2mm}#print-report h2{margin-top:7mm}#print-report .pdf-brand{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #005371;padding-bottom:3mm}#print-report .scroll{overflow:visible}#print-report tr{break-inside:avoid}#print-report h2{break-after:avoid}#print-report th,#print-report td{padding:2.5mm}}
 `},
   "/report.js": {type: "text/javascript; charset=utf-8", body: String.raw`
 const $ = id => document.getElementById(id);
 const hours = value => new Intl.NumberFormat('en', {maximumFractionDigits: 1}).format(value) + ' h';
 const dubai = new Intl.DateTimeFormat('en-GB', {timeZone:'Asia/Dubai', dateStyle:'medium', timeStyle:'short'});
 const day = new Intl.DateTimeFormat('en-GB', {timeZone:'Asia/Dubai', dateStyle:'medium'});
+const monthLabel = value => new Intl.DateTimeFormat('en', {month:'long',year:'numeric',timeZone:'UTC'}).format(new Date(value + '-01T00:00:00Z'));
+const sharedDesign = 'Design and motion (shared)';
 const monthOf = stamp => new Date(stamp + 14400000).toISOString().slice(0, 7);
 const positiveHours = duration => duration / 3600000;
 let data;
@@ -146,18 +152,17 @@ function taskView(target, tasks) {
   target.append(el('h2', 'Task details'), controls, details);
 }
 
-function activityReport(target, work, month, client, member) {
+function activityReport(target, work, plans, month, client, member) {
   const totals = new Map();
   for (const [, name, type, , duration] of work) {
     if (!totals.has(name)) totals.set(name, new Map());
     const activities = totals.get(name);
     activities.set(type, (activities.get(type) || 0) + duration);
   }
-  const plans = new Map((data.activityPlans || []).filter(plan => plan.month === month && (!client || plan.client === client))
-    .map(plan => [plan.client, plan.hours]));
   const clients = client ? [client] : [...new Set([...totals.keys(), ...(!member ? plans.keys() : [])])].sort();
   target.append(el('h2', 'Client activity report'),
     el('p', 'Activities use ClickUp work-type tags, task titles, team roles and task lists. Unclassified hours are included in the totals.'));
+  target.append(el('p', 'Planned hours are retainer budgets. Logged hours can include fixed-price ad-hoc work, pitches and internal support. A logged hour does not imply a charge to the client.'));
   if (member) target.append(el('p', 'Clear the team member filter to compare with the client’s full activity plan.'));
   if (data.canEditPlans) {
     const link = el('a', 'Set planned hours');
@@ -174,7 +179,7 @@ function activityReport(target, work, month, client, member) {
     const block = el('div', undefined, 'activity-client');
     block.append(el('h3', name), el('p', hours(positiveHours(total)) + ' logged' +
       (Object.keys(plan).length ? ' · ' + hours(planned) + ' planned' : '')));
-    const columns = member ? ['Activity', 'Logged', 'Share of logged hours'] : ['Activity', 'Logged', 'Planned', 'Share of logged hours'];
+    const columns = member ? ['Activity', 'Logged', 'Share of logged hours'] : ['Activity', 'Logged', 'Retainer plan', 'Share of logged hours'];
     const rows = allTypes.map(type => {
       const duration = logged.get(type) || 0;
       const share = total ? Math.round(100 * duration / total) + '%' : '—';
@@ -186,11 +191,58 @@ function activityReport(target, work, month, client, member) {
   }
 }
 
+function exportControl(client, from, through, plans, work, tasks) {
+  const controls = $('client-export');
+  controls.replaceChildren();
+  if (!client) {
+    controls.append(el('h2','Client PDF'), el('p','Select one client to prepare a PDF.'));
+    return;
+  }
+  const includeHours = el('input');
+  includeHours.type = 'checkbox';
+  const hourSetting = el('label');
+  hourSetting.append(includeHours, ' Include logged hours by activity');
+  const print = el('button','Export client PDF');
+  controls.append(el('h2','Client PDF'), hourSetting,
+    el('p','Only include logged hours if approved for sharing. They can include ad-hoc, pitch or internal work.'), print);
+  print.onclick = () => {
+    const target = $('print-report');
+    const plan = plans.get(client) || {};
+    const totals = new Map();
+    if (includeHours.checked) {
+      for (const [, , activity, , duration] of work) totals.set(activity, (totals.get(activity) || 0) + duration);
+    }
+    const types = [...new Set([...Object.keys(plan), ...totals.keys()])].sort();
+    const activityRows = types.map(type => {
+      const row = [type,Object.hasOwn(plan,type) ? hours(plan[type]) : '—'];
+      if (includeHours.checked) row.push(hours(positiveHours(totals.get(type) || 0)));
+      return row;
+    });
+    const header = el('div',undefined,'pdf-brand');
+    const logo = el('img');
+    logo.src = '/rich-logo.svg';
+    logo.alt = 'RICH';
+    logo.width = 84;
+    header.append(logo,el('p','Client delivery report'));
+    target.replaceChildren(header,el('h1',client),
+      el('p',from === through ? monthLabel(from) : monthLabel(from) + ' – ' + monthLabel(through)),
+      el('h2','Work summary'),el('p',tasks.length + ' tasks created in this period.'));
+    if (tasks.length) target.append(table(['Current status','Tasks'],grouped(tasks,task=>task.status)
+      .sort((a,b)=>b[1]-a[1]).map(([label,count])=>[label,String(count)])));
+    if (types.length) target.append(el('h2','Activity summary'),table(
+      includeHours.checked ? ['Activity','Retainer plan','Logged'] : ['Activity','Retainer plan'],activityRows));
+    if (includeHours.checked) target.append(el('p','Logged time is a delivery measure and does not represent charges.'));
+    window.print();
+  };
+}
+
 function render() {
   const month = $('month').value;
+  const through = $('through').value;
+  const inRange = value => value >= month && value <= through;
   const client = $('client').value;
   const previousMember = $('member').value;
-  const scoped = row => row[0] === month && (!client || row[1] === client);
+  const scoped = row => inRange(row[0]) && (!client || row[1] === client);
   const scopedLogs = data.byPerson.filter(scoped);
   const loggedMembers = new Set(scopedLogs.map(row => row[2]));
   const visibleMembers = data.members.filter(person => !client || loggedMembers.has(person.id));
@@ -198,14 +250,33 @@ function render() {
   $('member').value = visibleMembers.some(person => person.id === previousMember) ? previousMember : '';
   const member = $('member').value;
   const logs = scopedLogs.filter(row => !member || row[2] === member);
-  const work = data.byType.filter(row => scoped(row) && (!member || row[3] === member));
-  const tasks = data.tasks.filter(task => (!client || task.client === client) && monthOf(task.created) === month);
-  const allocations = data.allocations.filter(item => item.month === month && (!client || item.client === client) && (!member || String(item.memberId) === member));
-  const pairs = new Map(logs.map(([, client, person, time]) => [JSON.stringify([person, client]), {person, client, time}]));
+  const planRows = (data.activityPlans || []).filter(plan => inRange(plan.month) && (!client || plan.client === client));
+  const monthPlans = new Map(planRows.map(plan => [JSON.stringify([plan.month,plan.client]), plan.hours]));
+  const plans = new Map();
+  for (const plan of planRows) {
+    const accumulated = plans.get(plan.client) || {};
+    for (const [activity, value] of Object.entries(plan.hours)) accumulated[activity] = (accumulated[activity] || 0) + value;
+    plans.set(plan.client, accumulated);
+  }
+  const clientWork = data.byType.filter(scoped).map(row => {
+    const monthPlan = monthPlans.get(JSON.stringify(row.slice(0,2)));
+    return monthPlan && Object.hasOwn(monthPlan,sharedDesign) && ['Design','Motion design and animation'].includes(row[2])
+      ? [row[0],row[1],sharedDesign,row[3],row[4]] : row;
+  });
+  const work = clientWork.filter(row => !member || row[3] === member);
+  const tasks = data.tasks.filter(task => (!client || task.client === client) && inRange(monthOf(task.created)));
+  const allocations = data.allocations.filter(item => inRange(item.month) && (!client || item.client === client) && (!member || String(item.memberId) === member));
+  const pairs = new Map();
+  for (const [, name, person, time] of logs) {
+    const key = JSON.stringify([person, name]);
+    const row = pairs.get(key) || {person, client:name, time:0};
+    row.time += time;
+    pairs.set(key, row);
+  }
   for (const entry of allocations) {
     const person = String(entry.memberId);
     const key = JSON.stringify([person, entry.client]);
-    if (!client || pairs.has(key)) pairs.set(key, {...(pairs.get(key) || {person, client:entry.client, time:0}), planned:entry.hours});
+    if (!client || pairs.has(key)) pairs.set(key, {...(pairs.get(key) || {person, client:entry.client, time:0}), planned:(pairs.get(key)?.planned || 0) + entry.hours});
   }
   for (const person of client ? [] : data.members) {
     if ((!member || person.id === member) && ![...pairs.values()].some(row => row.person === person.id)) {
@@ -229,7 +300,7 @@ function render() {
   const names = new Map(data.members.map(person => [person.id, person]));
   if (view === 'capacity') {
     const rows = [...pairs.values()].sort((a,b) => (names.get(a.person)?.name || '').localeCompare(names.get(b.person)?.name || '') || a.client.localeCompare(b.client));
-    target.append(el('h2', 'Monthly capacity by team member and client'),
+    target.append(el('h2', 'Capacity by team member and client'),
       table(['Team member', 'Role', 'Client', 'Planned', 'Logged', 'Logged ÷ planned'], rows.map(row => {
         const person = names.get(row.person);
         const logged = positiveHours(row.time);
@@ -237,8 +308,9 @@ function render() {
           hours(logged), row.planned > 0 ? Math.round(100 * logged / row.planned) + '%' : '—'];
       })));
   }
-  if (view === 'work') activityReport(target, work, month, client, member);
+  if (view === 'work') activityReport(target, work, plans, month, client, member);
   if (view === 'tasks') taskView(target, tasks);
+  exportControl(client, month, through, plans, clientWork, tasks);
   $('notice').textContent = view === 'tasks' && member ? 'Task counts and statuses include all team members.' : '';
 }
 
@@ -252,10 +324,20 @@ async function start() {
     return;
   }
   $('sync').textContent = 'Last synced ' + dubai.format(data.updated) + ' Dubai · Daily at 5:00 AM';
-  options($('month'), data.months.map(value => [value, new Intl.DateTimeFormat('en', {month:'long',year:'numeric',timeZone:'UTC'}).format(new Date(value + '-01T00:00:00Z'))]));
+  const monthOptions = data.months.map(value => [value,monthLabel(value)]);
+  options($('month'), monthOptions);
+  options($('through'), monthOptions);
+  $('month').onchange = () => {
+    if ($('through').value < $('month').value) $('through').value = $('month').value;
+    render();
+  };
+  $('through').onchange = () => {
+    if ($('through').value < $('month').value) $('month').value = $('through').value;
+    render();
+  };
   const clients = [...new Set([...data.clients, ...data.tasks.map(task => task.client), ...data.byPerson.map(row => row[1]), ...data.allocations.map(item => item.client)])].sort();
   options($('client'), [['', 'All clients'], ...clients.map(name => [name,name])]);
-  for (const id of ['month','client','member']) $(id).onchange = render;
+  for (const id of ['client','member']) $(id).onchange = render;
   for (const button of document.querySelectorAll('[data-view]')) button.onclick = () => {
     for (const other of document.querySelectorAll('[data-view]')) other.setAttribute('aria-pressed', String(other === button));
     view = button.dataset.view;
