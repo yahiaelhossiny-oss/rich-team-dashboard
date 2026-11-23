@@ -73,7 +73,7 @@ function loginPage(reply, error = '') {
 function accountPage(reply, user, error = '') {
   const notice = error ? '<p role="alert">' + error + '</p>' : '';
   const link = '<p><a href="/">Back to dashboard</a></p>';
-  if (user.admin) return page(reply, 'Account', link + '<p><a href="/users">Manage users</a></p><form method="post" action="/api/refresh"><button>Sync ClickUp now</button></form><p>The administrator password is managed in Cloudflare.</p>');
+  if (user.admin) return page(reply, 'Account', link + '<p><a href="/users">Manage users</a></p><p><a href="/planned-hours">Set planned hours</a></p><form method="post" action="/api/refresh"><button>Sync ClickUp now</button></form><p>The administrator password is managed in Cloudflare.</p>');
   return page(reply, 'Change password', link + notice + `<form method="post" action="/account">${passwordField('current','Current password','current-password')}${passwordField('password','New password','new-password')}${passwordField('confirm','Confirm new password','new-password')}<p>Use at least 12 characters.</p><button>Change password</button></form>`, error ? 400 : 200);
 }
 

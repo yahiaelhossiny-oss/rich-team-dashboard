@@ -1,24 +1,12 @@
 import assets from './view.mjs';
 import { accountRoute, session } from './auth.mjs';
+import { activityFor, activities } from './activity.mjs';
 
 const internal = new Set(['rich', 'templates']);
 const offset = 4 * 3600_000;
 
 export function monthOf(timestamp) {
   return new Date(Number(timestamp) + offset).toISOString().slice(0, 7);
-}
-
-function workType(tags, list) {
-  const tag = (tags ?? []).map(value => value.name ?? value).find(value => /^work type\s*:/i.test(value));
-  if (tag) return tag.replace(/^work type\s*:\s*/i, '').trim() || 'Unclassified';
-  if (/performance.*crm/i.test(list)) return 'Performance & CRM';
-  if (/social media|content calendar/i.test(list)) return 'Social media';
-  if (/performance/i.test(list)) return 'Performance marketing';
-  if (/\bcrm\b/i.test(list)) return 'CRM';
-  if (/management/i.test(list)) return 'Account management';
-  if (/episode production/i.test(list)) return 'Episode production';
-  if (/campaign|project|creative brief/i.test(list)) return 'Campaigns & projects';
-  return 'Unclassified';
 }
 
 function bucket(map, keys, value) {
@@ -120,10 +108,7 @@ export async function sync(env, now = Date.now()) {
       if (!entry.user?.id) throw new Error('ClickUp time entry is missing a user');
       const person = String(entry.user.id);
       if (!members.some(member => member.id === person)) members.push({id: person, name: entry.user.username || 'Member ' + person, role: roles[person] || null});
-      const entryType = workType(entry.tags, '');
-      const type = entryType === 'Unclassified'
-        ? workType(task?.tags ?? entry.task?.tags, task?.list?.name || location.list_name || '')
-        : entryType;
+      const type = activityFor(entry, task, task?.list?.name || location.list_name, roles[person]);
       bucket(byPerson, [entryMonth, client, person], duration);
       bucket(byType, [entryMonth, client, type, person], duration);
     }
@@ -138,6 +123,73 @@ const secure = {'Cache-Control':'private, no-store', 'X-Content-Type-Options':'n
   'Content-Security-Policy':"default-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'"};
 function reply(body, status = 200, extra = {}) {
   return new Response(body, {status, headers: {...secure, ...extra}});
+}
+
+
+const planPrefix = 'activity-plan:';
+const planKey = (month, client) => planPrefix + month + ':' + encodeURIComponent(client);
+
+async function activityPlans(env) {
+  const rows = [];
+  let cursor;
+  do {
+    const result = await env.REPORTS.list({prefix:planPrefix, cursor});
+    for (const {metadata} of result.keys) {
+      if (metadata) rows.push(metadata);
+    }
+    cursor = result.list_complete === false ? result.cursor : undefined;
+  } while (cursor);
+  return rows;
+}
+const escapeHtml = value => String(value).replace(/[&<>"']/g, character => ({
+  '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'
+})[character]);
+
+async function plannedHours(request, env, user) {
+  if (!user?.admin) return reply('Only the administrator can set planned hours.', 403);
+  const url = new URL(request.url);
+  const post = request.method === 'POST';
+  if (!post && request.method !== 'GET') return reply('Method not allowed.', 405);
+  if (post && request.headers.get('Origin') !== url.origin) return reply('Invalid request origin.', 403);
+  const report = await env.REPORTS.get('snapshot', 'json');
+  if (!report) return reply('Sync ClickUp before setting planned hours.', 409);
+  const clients = [...new Set([...report.clients, ...report.byPerson.map(row => row[1])])].sort();
+  if (!clients.length) return reply('No clients are available.', 409);
+  const fields = post ? await request.formData() : url.searchParams;
+  const client = fields.get('client') || clients[0];
+  const month = fields.get('month') || report.currentMonth;
+  if (!clients.includes(client) || !/^\d{4}-(0[1-9]|1[0-2])$/.test(month)) return reply('Select a valid client and month.', 400);
+  const key = planKey(month, client);
+  if (post) {
+    const hours = {};
+    for (const activity of activities) {
+      const value = fields.get(activity);
+      if (value === null || value === '') continue;
+      if (typeof value !== 'string' || !/^\d+(?:\.\d{1,2})?$/.test(value) || Number(value) > 100000) {
+        return reply('Enter hours between 0 and 100,000 with up to two decimal places. Leave a field blank to clear its plan.', 400);
+      }
+      hours[activity] = Number(value);
+    }
+    const plan = {client, month, hours};
+    if (Object.keys(hours).length) await env.REPORTS.put(key, JSON.stringify(plan), {metadata:plan});
+    else await env.REPORTS.delete(key);
+    return reply('', 303, {Location:'/planned-hours?' + new URLSearchParams({client, month, saved:'1'})});
+  }
+  const current = await env.REPORTS.get(key, 'json');
+  const options = clients.map(name => '<option' + (name === client ? ' selected' : '') + '>' + escapeHtml(name) + '</option>').join('');
+  const activityFields = activities.map(name => '<label>' + name + '<input type="number" min="0" max="100000" step="0.01" name="' + name +
+    '" value="' + (current?.hours[name] ?? '') + '"></label>').join('');
+  const notice = fields.has('saved') ? '<p role="status">Planned hours saved.</p>' : '';
+  return reply(`<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Set planned hours | RICH</title><link rel="stylesheet" href="/style.css">
+    <header><div class="brand"><img src="/rich-logo.svg" alt="RICH" width="75" height="30"><span aria-hidden="true">/</span> OPERATIONS</div></header>
+    <main><h1>Set planned hours</h1><p><a href="/">Back to dashboard</a></p>
+    <section><form method="get" class="filters"><label>Client<select name="client">${options}</select></label>
+    <label>Month<input type="month" name="month" value="${month}" required></label><button>Load plan</button></form>
+    ${notice}<h2>${escapeHtml(client)} · ${month}</h2>
+    <p>Enter the client's total monthly hours budget for each activity. Leave an activity blank when no budget has been set.</p>
+    <form method="post"><input type="hidden" name="client" value="${escapeHtml(client)}"><input type="hidden" name="month" value="${month}">
+    <div class="plan-grid">${activityFields}</div><button>Save planned hours</button></form></section></main></html>`, 200, {'Content-Type':'text/html; charset=utf-8'});
 }
 
 async function authorized(request, password) {
@@ -158,9 +210,14 @@ export default {
     if (!user && path === '/api/refresh' && !await authorized(request, env.DASHBOARD_PASSWORD)) return reply('Sign in to the RICH dashboard.', 401);
     if (!user && path.startsWith('/api/') && path !== '/api/refresh') return reply('Sign in to the RICH dashboard.', 401);
     if (!user && !['/api/refresh','/style.css','/rich-logo.svg'].includes(path)) return reply('', 303, {Location:'/login'});
+    if (path === '/planned-hours') return plannedHours(request, env, user);
     if (path === '/api/report' && request.method === 'GET') {
       const snapshot = await env.REPORTS.get('snapshot');
-      return reply(snapshot || '{"pending":true}', 200, {'Content-Type':'application/json'});
+      if (!snapshot) return reply('{"pending":true}', 200, {'Content-Type':'application/json'});
+      const report = JSON.parse(snapshot);
+      report.activityPlans = await activityPlans(env);
+      report.canEditPlans = user.admin;
+      return reply(JSON.stringify(report), 200, {'Content-Type':'application/json'});
     }
     if (path === '/api/refresh' && request.method === 'POST') {
       if (user && !user.admin) return reply('Only the administrator can refresh the report.', 403);

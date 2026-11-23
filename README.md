@@ -22,10 +22,14 @@ The scheduled refresh starts automatically. Select Sync ClickUp now from the adm
 
 ## Reporting rules
 
-Client names come from ClickUp spaces. The RICH and Templates spaces are excluded. Ad-hoc spaces use exact client tags when available and otherwise show a separate unassigned client bucket. Work type comes from a `work type:` time-entry tag, the equivalent task tag, or the task’s list. Unclassified work stays visible. Recorded time is attributed to the Dubai month in which the entry started. Running timers are excluded. Missing allocations display as Unset. For allocations larger than a runtime variable, store the same JSON array under the `capacity` key in the report namespace and leave `CAPACITY_JSON` unset.
+Client names come from ClickUp spaces. The RICH and Templates spaces are excluded. Ad-hoc spaces use exact client tags when available and otherwise show a separate unassigned client bucket. Activity comes from an explicit `work type:` or `activity:` tag, then a task title with a recognisable activity, the contributor’s configured role, or the task list. Unclassified work stays visible. Recorded time is attributed to the Dubai month in which the entry started. Running timers are excluded. Missing allocations display as Unset. For allocations larger than a runtime variable, store the same JSON array under the `capacity` key in the report namespace and leave `CAPACITY_JSON` unset.
 
 The report contains internal staff and client data. Configure all private mappings and credentials through Cloudflare runtime settings. Keep them out of GitHub.
 
 ## User accounts
 
 Sign in as `rich`, open Account, and choose Manage users to create a username and temporary password. Users sign in without an email address and change their own password from Account. User accounts have read-only access to the same dashboard reports. Passwords are stored as salted hashes in Workers KV.
+
+## Activity plans
+
+Administrators can open Set planned hours from Account or Client activity. Select a client and month and enter the full client budget by activity. Saving replaces that client-month plan. A blank activity means unset and zero means an explicit zero-hour plan. The activity report compares those budgets with logged hours when viewing the whole client. Person-level allocations are still reported in Team capacity.

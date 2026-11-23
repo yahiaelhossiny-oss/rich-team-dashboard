@@ -35,7 +35,7 @@ export default {
 <div class="metrics" id="metrics"></div>
 <nav aria-label="Report sections">
 <button aria-pressed="true" data-view="capacity">Team capacity</button>
-<button aria-pressed="false" data-view="work">Client work mix</button>
+<button aria-pressed="false" data-view="work">Client activity</button>
 <button aria-pressed="false" data-view="tasks">Tasks &amp; statuses</button>
 </nav>
 <section id="report" aria-live="polite"></section>
@@ -43,8 +43,8 @@ export default {
 </html>
 `},
   "/style.css": {type: "text/css; charset=utf-8", body: String.raw`
-:root{font-family:system-ui,sans-serif;color:#14221d;background:#edf2ed}
-*{box-sizing:border-box}body{margin:0}header{background:#15382c;color:#fff;display:flex;justify-content:space-between;align-items:center;gap:1rem;padding:1.2rem max(5vw,1rem)}.brand{display:flex;align-items:center;gap:.55rem;font-weight:850;letter-spacing:.1em}.header-tools{display:flex;align-items:center;justify-content:flex-end;gap:.85rem;flex-wrap:wrap}.header-tools a{color:white}.header-tools button{padding:.3rem .65rem}.account-panel{max-width:35rem}.account-panel form,.account-panel label{display:grid;gap:.45rem}.account-panel form{gap:.8rem}.account-panel button{justify-self:start}.brand img{display:block;filter:brightness(0) invert(1);object-fit:contain}.brand span{color:#bdec85}#sync{font-size:.85rem}main{max-width:1350px;margin:auto;padding:2.3rem max(4vw,1rem)}h1{font-size:clamp(2.5rem,6vw,4.8rem);margin:0 0 1.3rem;letter-spacing:-.07em}h2{letter-spacing:-.035em}.filters,.metrics,nav{display:flex;gap:.8rem;flex-wrap:wrap}.filters label{display:grid;gap:.3rem;font-weight:650;font-size:.8rem;flex:1 1 175px;max-width:320px}select,input,button{font:inherit;padding:.65rem .8rem;border:1px solid #91a497;border-radius:.5rem;background:white;color:inherit}button{cursor:pointer;font-weight:650}button[aria-pressed=true]{background:#15382c;color:white;border-color:#15382c}.metrics{margin:1.3rem 0}.metric{background:#dbead7;border-radius:.8rem;padding:1rem;flex:1 1 160px}.metric strong{display:block;font-size:1.8rem;letter-spacing:-.04em}section{margin:1rem 0;background:white;padding:1rem 1.2rem;border-radius:.8rem}.scroll{overflow:auto}table{width:100%;border-collapse:collapse;text-align:left}th,td{padding:.7rem .6rem;border-bottom:1px solid #e1e9e1;vertical-align:top}th{font-size:.76rem;text-transform:uppercase;letter-spacing:.045em;color:#41594c}a{color:#215b44}p{color:#40574b}.status{display:inline-block;background:#ecf3e8;padding:.2rem .5rem;border-radius:.4rem}.table-filters{display:flex;flex-wrap:wrap;gap:.65rem;margin-bottom:1rem}.table-filters label{display:grid;gap:.3rem}button:focus-visible,select:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid #257454;outline-offset:2px}
+:root{font-family:system-ui,sans-serif;color:#00162e;background:#ebe9e6}
+*{box-sizing:border-box}body{margin:0}header{background:#00162e;color:#fff;display:flex;justify-content:space-between;align-items:center;gap:1rem;padding:1.2rem max(5vw,1rem)}.brand{display:flex;align-items:center;gap:.55rem;font-weight:850;letter-spacing:.1em}.header-tools{display:flex;align-items:center;justify-content:flex-end;gap:.85rem;flex-wrap:wrap}.header-tools a{color:white}.header-tools button{padding:.3rem .65rem}.account-panel{max-width:35rem}.account-panel form,.account-panel label{display:grid;gap:.45rem}.account-panel form{gap:.8rem}.account-panel button{justify-self:start}.brand img{display:block;filter:brightness(0) invert(1);object-fit:contain}.brand span{color:#ff6b61}#sync{font-size:.85rem}main{max-width:1350px;margin:auto;padding:2.3rem max(4vw,1rem)}h1{font-size:clamp(2.5rem,6vw,4.8rem);margin:0 0 1.3rem;letter-spacing:-.07em}h2{letter-spacing:-.035em}.filters,.metrics,nav{display:flex;gap:.8rem;flex-wrap:wrap}.filters label{display:grid;gap:.3rem;font-weight:650;font-size:.8rem;flex:1 1 175px;max-width:320px}select,input,button{font:inherit;padding:.65rem .8rem;border:1px solid #526678;border-radius:.5rem;background:white;color:inherit}button{cursor:pointer;font-weight:650}button[aria-pressed=true]{background:#00162e;color:white;border-color:#00162e}.metrics{margin:1.3rem 0}.metric{background:#e1ecfd;border-radius:.8rem;padding:1rem;flex:1 1 160px}.metric strong{display:block;font-size:1.8rem;letter-spacing:-.04em}section{margin:1rem 0;background:white;padding:1rem 1.2rem;border-radius:.8rem}.scroll{overflow:auto}table{width:100%;border-collapse:collapse;text-align:left}th,td{padding:.7rem .6rem;border-bottom:1px solid #e1ecfd;vertical-align:top}th{font-size:.76rem;text-transform:uppercase;letter-spacing:.045em;color:#005371}a{color:#005371}p{color:#005371}.status{display:inline-block;background:#e1ecfd;padding:.2rem .5rem;border-radius:.4rem}.table-filters{display:flex;flex-wrap:wrap;gap:.65rem;margin-bottom:1rem}.table-filters label{display:grid;gap:.3rem}button:focus-visible,select:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid #0085c2;outline-offset:2px}.activity-client{border-top:1px solid #e1ecfd;margin-top:1.5rem;padding-top:.5rem}.activity-client h3{margin-bottom:.25rem}.activity-client p{margin-top:.25rem}.plan-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem;margin:1rem 0}.plan-grid label{display:grid;gap:.4rem}.filters button{align-self:end}
 `},
   "/report.js": {type: "text/javascript; charset=utf-8", body: String.raw`
 const $ = id => document.getElementById(id);
@@ -146,12 +146,58 @@ function taskView(target, tasks) {
   target.append(el('h2', 'Task details'), controls, details);
 }
 
+function activityReport(target, work, month, client, member) {
+  const totals = new Map();
+  for (const [, name, type, duration] of work) {
+    if (!totals.has(name)) totals.set(name, new Map());
+    const activities = totals.get(name);
+    activities.set(type, (activities.get(type) || 0) + duration);
+  }
+  const plans = new Map((data.activityPlans || []).filter(plan => plan.month === month && (!client || plan.client === client))
+    .map(plan => [plan.client, plan.hours]));
+  const clients = client ? [client] : [...new Set([...totals.keys(), ...(!member ? plans.keys() : [])])].sort();
+  target.append(el('h2', 'Client activity report'),
+    el('p', 'Activities use ClickUp work-type tags, task titles, team roles and task lists. Unclassified hours are included in the totals.'));
+  if (member) target.append(el('p', 'Clear the team member filter to compare with the client’s full activity plan.'));
+  if (data.canEditPlans) {
+    const link = el('a', 'Set planned hours');
+    link.href = '/planned-hours?' + new URLSearchParams({month, ...(client ? {client} : {})});
+    target.append(el('p', link));
+  }
+  if (!clients.length) target.append(el('p', 'No logged hours or activity plans for these filters.'));
+  for (const name of clients) {
+    const logged = totals.get(name) || new Map();
+    const plan = member ? {} : plans.get(name) || {};
+    const allTypes = [...new Set([...logged.keys(), ...Object.keys(plan)])].sort((a,b) => (logged.get(b) || 0) - (logged.get(a) || 0) || a.localeCompare(b));
+    const total = [...logged.values()].reduce((sum, duration) => sum + duration, 0);
+    const planned = Object.values(plan).reduce((sum, value) => sum + value, 0);
+    const block = el('div', undefined, 'activity-client');
+    block.append(el('h3', name), el('p', hours(positiveHours(total)) + ' logged' +
+      (Object.keys(plan).length ? ' · ' + hours(planned) + ' planned' : '')));
+    const columns = member ? ['Activity', 'Logged', 'Share of logged hours'] : ['Activity', 'Logged', 'Planned', 'Share of logged hours'];
+    const rows = allTypes.map(type => {
+      const duration = logged.get(type) || 0;
+      const share = total ? Math.round(100 * duration / total) + '%' : '—';
+      return member ? [type, hours(positiveHours(duration)), share] :
+        [type, hours(positiveHours(duration)), Object.hasOwn(plan,type) ? hours(plan[type]) : 'Unset', share];
+    });
+    block.append(table(columns, rows));
+    target.append(block);
+  }
+}
+
 function render() {
   const month = $('month').value;
   const client = $('client').value;
-  const member = $('member').value;
+  const previousMember = $('member').value;
   const scoped = row => row[0] === month && (!client || row[1] === client);
-  const logs = data.byPerson.filter(row => scoped(row) && (!member || row[2] === member));
+  const scopedLogs = data.byPerson.filter(scoped);
+  const loggedMembers = new Set(scopedLogs.map(row => row[2]));
+  const visibleMembers = data.members.filter(person => !client || loggedMembers.has(person.id));
+  options($('member'), [['', 'All team members'], ...visibleMembers.map(person => [person.id,person.name]).sort((a,b) => a[1].localeCompare(b[1]))]);
+  $('member').value = visibleMembers.some(person => person.id === previousMember) ? previousMember : '';
+  const member = $('member').value;
+  const logs = scopedLogs.filter(row => !member || row[2] === member);
   const work = data.byType.filter(row => scoped(row) && (!member || row[4] === member));
   const tasks = data.tasks.filter(task => (!client || task.client === client) && monthOf(task.created) === month);
   const allocations = data.allocations.filter(item => item.month === month && (!client || item.client === client) && (!member || String(item.memberId) === member));
@@ -159,9 +205,9 @@ function render() {
   for (const entry of allocations) {
     const person = String(entry.memberId);
     const key = JSON.stringify([person, entry.client]);
-    pairs.set(key, {...(pairs.get(key) || {person, client:entry.client, time:0}), planned:entry.hours});
+    if (!client || pairs.has(key)) pairs.set(key, {...(pairs.get(key) || {person, client:entry.client, time:0}), planned:entry.hours});
   }
-  for (const person of data.members) {
+  for (const person of client ? [] : data.members) {
     if ((!member || person.id === member) && ![...pairs.values()].some(row => row.person === person.id)) {
       pairs.set(person.id, {person:person.id, client:client || '—', time:0});
     }
@@ -191,23 +237,7 @@ function render() {
           hours(logged), row.planned > 0 ? Math.round(100 * logged / row.planned) + '%' : '—'];
       })));
   }
-  if (view === 'work') {
-    const groupedWork = new Map();
-    for (const [, name, type, duration] of work) {
-      const key = JSON.stringify([name, type]);
-      groupedWork.set(key, (groupedWork.get(key) || 0) + duration);
-    }
-    const totals = new Map();
-    for (const [key, duration] of groupedWork) {
-      const [name] = JSON.parse(key);
-      totals.set(name, (totals.get(name) || 0) + duration);
-    }
-    const rows = [...groupedWork].map(([key, duration]) => [...JSON.parse(key), duration])
-      .sort((a,b) => a[0].localeCompare(b[0]) || b[2] - a[2]);
-    target.append(el('h2', 'Logged work by client'),
-      el('p', 'Work type comes from an explicit work type tag or the ClickUp task list.'),
-      table(['Client', 'Work type', 'Logged', 'Share of client hours'], rows.map(([name,type,time]) => [name,type,hours(positiveHours(time)),Math.round(100 * time / totals.get(name)) + '%'])));
-  }
+  if (view === 'work') activityReport(target, work, month, client, member);
   if (view === 'tasks') taskView(target, tasks);
   $('notice').textContent = view === 'tasks' && member ? 'Task counts and statuses include all team members.' : '';
 }
@@ -225,7 +255,6 @@ async function start() {
   options($('month'), data.months.map(value => [value, new Intl.DateTimeFormat('en', {month:'long',year:'numeric',timeZone:'UTC'}).format(new Date(value + '-01T00:00:00Z'))]));
   const clients = [...new Set([...data.clients, ...data.tasks.map(task => task.client), ...data.byPerson.map(row => row[1]), ...data.allocations.map(item => item.client)])].sort();
   options($('client'), [['', 'All clients'], ...clients.map(name => [name,name])]);
-  options($('member'), [['', 'All team members'], ...data.members.map(person => [person.id,person.name]).sort((a,b) => a[1].localeCompare(b[1]))]);
   for (const id of ['month','client','member']) $(id).onchange = render;
   for (const button of document.querySelectorAll('[data-view]')) button.onclick = () => {
     for (const other of document.querySelectorAll('[data-view]')) other.setAttribute('aria-pressed', String(other === button));
