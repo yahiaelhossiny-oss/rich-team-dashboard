@@ -47,7 +47,7 @@ export default {
 `},
   "/style.css": {type: "text/css; charset=utf-8", body: String.raw`
 :root{font-family:system-ui,sans-serif;color:#00162e;background:#ebe9e6}
-*{box-sizing:border-box}body{margin:0}header{background:#00162e;color:#fff;display:flex;justify-content:space-between;align-items:center;gap:1rem;padding:1.2rem max(5vw,1rem)}.brand{display:flex;align-items:center;gap:.55rem;font-weight:850;letter-spacing:.1em}.header-tools{display:flex;align-items:center;justify-content:flex-end;gap:.85rem;flex-wrap:wrap}.header-tools a{color:white}.header-tools button{padding:.3rem .65rem}.account-panel{max-width:35rem}.account-panel form,.account-panel label{display:grid;gap:.45rem}.account-panel form{gap:.8rem}.account-panel button{justify-self:start}.brand img{display:block;filter:brightness(0) invert(1);object-fit:contain}.brand span{color:#ff6b61}#sync{font-size:.85rem}main{max-width:1350px;margin:auto;padding:2.3rem max(4vw,1rem)}h1{font-size:clamp(2.5rem,6vw,4.8rem);margin:0 0 1.3rem;letter-spacing:-.07em}h2{letter-spacing:-.035em}.filters,.metrics,nav{display:flex;gap:.8rem;flex-wrap:wrap}.filters label{display:grid;gap:.3rem;font-weight:650;font-size:.8rem;flex:1 1 175px;max-width:320px}select,input,button{font:inherit;padding:.65rem .8rem;border:1px solid #005371;border-radius:.5rem;background:white;color:inherit}button{cursor:pointer;font-weight:650}button[aria-pressed=true]{background:#00162e;color:white;border-color:#00162e}.metrics{margin:1.3rem 0}.metric{background:#e1ecfd;border-radius:.8rem;padding:1rem;flex:1 1 160px}.metric strong{display:block;font-size:1.8rem;letter-spacing:-.04em}section{margin:1rem 0;background:white;padding:1rem 1.2rem;border-radius:.8rem}.scroll{overflow:auto}table{width:100%;border-collapse:collapse;text-align:left}th,td{padding:.7rem .6rem;border-bottom:1px solid #e1ecfd;vertical-align:top}th{font-size:.76rem;text-transform:uppercase;letter-spacing:.045em;color:#005371}a{color:#005371}p{color:#005371}.status{display:inline-block;background:#e1ecfd;padding:.2rem .5rem;border-radius:.4rem}.table-filters{display:flex;flex-wrap:wrap;gap:.65rem;margin-bottom:1rem}.table-filters label{display:grid;gap:.3rem}button:focus-visible,select:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid #0085c2;outline-offset:2px}.activity-client{border-top:1px solid #e1ecfd;margin-top:1.5rem;padding-top:.5rem}.activity-client h3{margin-bottom:.25rem}.activity-client p{margin-top:.25rem}.plan-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem;margin:1rem 0}.plan-grid label{display:grid;gap:.4rem}.filters button{align-self:end}#print-report{display:none}#client-export label{display:flex;align-items:center;gap:.4rem}
+*{box-sizing:border-box}body{margin:0}header{background:#00162e;color:#fff;display:flex;justify-content:space-between;align-items:center;gap:1rem;padding:1.2rem max(5vw,1rem)}.brand{display:flex;align-items:center;gap:.55rem;font-weight:850;letter-spacing:.1em}.header-tools{display:flex;align-items:center;justify-content:flex-end;gap:.85rem;flex-wrap:wrap}.header-tools a{color:white}.header-tools button{padding:.3rem .65rem;background:#fff;color:#00162e;border-color:#e1ecfd}.header-tools button:hover{background:#e1ecfd}.export-options{border:0;padding:0;margin:0;display:flex;flex-wrap:wrap;gap:.75rem 1.5rem}.export-options legend{font-weight:650;margin-bottom:.3rem}button:disabled{opacity:.55;cursor:default}.account-panel{max-width:35rem}.account-panel form,.account-panel label{display:grid;gap:.45rem}.account-panel form{gap:.8rem}.account-panel button{justify-self:start}.brand img{display:block;filter:brightness(0) invert(1);object-fit:contain}.brand span{color:#ff6b61}#sync{font-size:.85rem}main{max-width:1350px;margin:auto;padding:2.3rem max(4vw,1rem)}h1{font-size:clamp(2.5rem,6vw,4.8rem);margin:0 0 1.3rem;letter-spacing:-.07em}h2{letter-spacing:-.035em}.filters,.metrics,nav{display:flex;gap:.8rem;flex-wrap:wrap}.filters label{display:grid;gap:.3rem;font-weight:650;font-size:.8rem;flex:1 1 175px;max-width:320px}select,input,button{font:inherit;padding:.65rem .8rem;border:1px solid #005371;border-radius:.5rem;background:white;color:inherit}button{cursor:pointer;font-weight:650}button[aria-pressed=true]{background:#00162e;color:white;border-color:#00162e}.metrics{margin:1.3rem 0}.metric{background:#e1ecfd;border-radius:.8rem;padding:1rem;flex:1 1 160px}.metric strong{display:block;font-size:1.8rem;letter-spacing:-.04em}section{margin:1rem 0;background:white;padding:1rem 1.2rem;border-radius:.8rem}.scroll{overflow:auto}table{width:100%;border-collapse:collapse;text-align:left}th,td{padding:.7rem .6rem;border-bottom:1px solid #e1ecfd;vertical-align:top}th{font-size:.76rem;text-transform:uppercase;letter-spacing:.045em;color:#005371}a{color:#005371}p{color:#005371}.status{display:inline-block;background:#e1ecfd;padding:.2rem .5rem;border-radius:.4rem}.table-filters{display:flex;flex-wrap:wrap;gap:.65rem;margin-bottom:1rem}.table-filters label{display:grid;gap:.3rem}button:focus-visible,select:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid #0085c2;outline-offset:2px}.activity-client{border-top:1px solid #e1ecfd;margin-top:1.5rem;padding-top:.5rem}.activity-client h3{margin-bottom:.25rem}.activity-client p{margin-top:.25rem}.plan-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem;margin:1rem 0}.plan-grid label{display:grid;gap:.4rem}.filters button{align-self:end}#print-report{display:none}#client-export label{display:flex;align-items:center;gap:.4rem}
 @media print{@page{margin:16mm}body{background:white;color:#00162e}header,main>*{display:none!important}main{padding:0;max-width:none}main>#print-report{display:block!important;margin:0;padding:0}#print-report h1{font-size:32pt;margin:8mm 0 2mm}#print-report h2{margin-top:7mm}#print-report .pdf-brand{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #005371;padding-bottom:3mm}#print-report .scroll{overflow:visible}#print-report tr{break-inside:avoid}#print-report h2{break-after:avoid}#print-report th,#print-report td{padding:2.5mm}}
 `},
   "/report.js": {type: "text/javascript; charset=utf-8", body: String.raw`
@@ -191,33 +191,47 @@ function activityReport(target, work, plans, month, client, member) {
   }
 }
 
+function exportTaskStage(task) {
+  const label = String(task.status || '').toLowerCase().replace(/[_-]/g,' ').trim();
+  const type = String(task.statusType || '').toLowerCase();
+  if (/cancel|archive|reject|duplicate|won.t do/.test(label)) return '';
+  if (['closed','done'].includes(type) || /^(closed|complete|completed|done|delivered|finished|published)$/.test(label)) return 'completed';
+  if (/^(not started|to do|todo|open|new|backlog|assigned|planned|ready|awaiting start|queued)(\b|$)/.test(label)) return '';
+  if (type === 'custom' || /progress|ongoing|working|active|review|approval|blocked|revisions|feedback|production/.test(label)) return 'progress';
+  return '';
+}
+
 function exportControl(client, from, through, plans, work, tasks) {
   const controls = $('client-export');
   controls.replaceChildren();
+  controls.append(el('h2','Client PDF'));
   if (!client) {
-    controls.append(el('h2','Client PDF'), el('p','Select one client to prepare a PDF.'));
+    controls.append(el('p','Select one client to prepare a PDF.'));
     return;
   }
-  const includeHours = el('input');
-  includeHours.type = 'checkbox';
-  const hourSetting = el('label');
-  hourSetting.append(includeHours, ' Include logged hours by activity');
+
   const print = el('button','Export client PDF');
-  controls.append(el('h2','Client PDF'), hourSetting,
-    el('p','Only include logged hours if approved for sharing. They can include ad-hoc, pitch or internal work.'), print);
+  print.disabled = true;
+  const choices = [['timesheet','Timesheet'],['completed','Completed tasks'],['progress','Tasks in progress']];
+  const selected = new Set();
+  const options = el('fieldset',undefined,'export-options');
+  options.append(el('legend','Sections to include'));
+  for (const [id,title] of choices) {
+    const input = el('input');
+    input.type = 'checkbox';
+    const label = el('label');
+    label.append(input,' ' + title);
+    input.onchange = () => {
+      if (input.checked) selected.add(id);
+      else selected.delete(id);
+      print.disabled = selected.size === 0;
+    };
+    options.append(label);
+  }
+  controls.append(options,el('p','Review the selected tasks and logged hours before sharing the PDF.'),print);
   print.onclick = () => {
+    if (!selected.size) return;
     const target = $('print-report');
-    const plan = plans.get(client) || {};
-    const totals = new Map();
-    if (includeHours.checked) {
-      for (const [, , activity, , duration] of work) totals.set(activity, (totals.get(activity) || 0) + duration);
-    }
-    const types = [...new Set([...Object.keys(plan), ...totals.keys()])].sort();
-    const activityRows = types.map(type => {
-      const row = [type,Object.hasOwn(plan,type) ? hours(plan[type]) : '—'];
-      if (includeHours.checked) row.push(hours(positiveHours(totals.get(type) || 0)));
-      return row;
-    });
     const header = el('div',undefined,'pdf-brand');
     const logo = el('img');
     logo.src = '/rich-logo.svg';
@@ -225,13 +239,26 @@ function exportControl(client, from, through, plans, work, tasks) {
     logo.width = 84;
     header.append(logo,el('p','Client delivery report'));
     target.replaceChildren(header,el('h1',client),
-      el('p',from === through ? monthLabel(from) : monthLabel(from) + ' – ' + monthLabel(through)),
-      el('h2','Work summary'),el('p',tasks.length + ' tasks created in this period.'));
-    if (tasks.length) target.append(table(['Current status','Tasks'],grouped(tasks,task=>task.status)
-      .sort((a,b)=>b[1]-a[1]).map(([label,count])=>[label,String(count)])));
-    if (types.length) target.append(el('h2','Activity summary'),table(
-      includeHours.checked ? ['Activity','Retainer plan','Logged'] : ['Activity','Retainer plan'],activityRows));
-    if (includeHours.checked) target.append(el('p','Logged time is a delivery measure and does not represent charges.'));
+      el('p',from === through ? monthLabel(from) : monthLabel(from) + ' – ' + monthLabel(through)));
+
+    if (selected.has('timesheet')) {
+      const totals = new Map();
+      for (const [, , activity, , duration] of work) totals.set(activity, (totals.get(activity) || 0) + duration);
+      const plan = plans.get(client) || {};
+      const types = [...new Set([...Object.keys(plan), ...totals.keys()])].sort();
+      const rows = types.map(type => [type,hours(positiveHours(totals.get(type) || 0)),
+        Object.hasOwn(plan,type) ? hours(plan[type]) : '—']);
+      const total = [...totals.values()].reduce((sum, time) => sum + time,0);
+      target.append(el('h2','Timesheet'),el('p',hours(positiveHours(total)) + ' logged in the selected period.'),
+        table(['Activity','Logged','Retainer plan'], rows),
+        el('p','Logged time is a delivery measure and does not represent charges.'));
+    }
+    for (const [id,title] of choices.slice(1)) {
+      if (!selected.has(id)) continue;
+      const matching = tasks.filter(task => exportTaskStage(task) === id).sort((a,b) => b.created - a.created);
+      target.append(el('h2',title),el('p',matching.length + ' tasks created in this period with this current status.'),
+        table(['Task','Current status','Created'],matching.map(task => [task.name,task.status,day.format(task.created)])));
+    }
     window.print();
   };
 }

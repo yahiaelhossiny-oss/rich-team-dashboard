@@ -82,7 +82,7 @@ export async function sync(env, now = Date.now()) {
   for (const task of taskIndex.values()) {
     const client = classifyClient(clientNames[task.space?.id], task.tags);
     if (client && Number.isFinite(Number(task.date_created))) tasks.push({id: String(task.id), name: task.name, client,
-      status: task.status?.status || 'Unknown', created: Number(task.date_created)});
+      status: task.status?.status || 'Unknown', statusType: task.status?.type || null, created: Number(task.date_created)});
   }
 
   const byPerson = new Map();
