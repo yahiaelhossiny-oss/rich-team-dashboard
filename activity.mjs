@@ -3,6 +3,7 @@ const rules = [
   ['Motion design and animation', /\bmotion\b|animat/],
   ['Copywriting', /copywrit|\bcopy\b|scriptwrit|voice.?over script/],
   ['Videography and production', /videograph|video edit|video production|episode production|\bfilming\b/],
+  ['Content management', /\bcontent manag/],
   ['Social media management', /social media|community manag|content strategist|content calendar/],
   ['Performance marketing', /performance|paid media|paid search|paid social|media buy|\bppc\b/],
   ['Marketing management', /marketing manag|account manag|overall management/],
