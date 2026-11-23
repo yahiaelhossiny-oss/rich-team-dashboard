@@ -17,5 +17,15 @@
   "observability": {
     "enabled": true
   },
-  "keep_vars": true
+  "keep_vars": true,
+  "ratelimits": [
+    {
+      "name": "LOGIN_LIMIT",
+      "namespace_id": "742193",
+      "simple": {
+        "limit": 12,
+        "period": 60
+      }
+    }
+  ]
 }

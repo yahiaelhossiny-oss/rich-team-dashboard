@@ -1,4 +1,5 @@
 import assets from './view.mjs';
+import { accountRoute, session } from './auth.mjs';
 
 const internal = new Set(['rich', 'templates']);
 const offset = 4 * 3600_000;
@@ -134,7 +135,7 @@ export async function sync(env, now = Date.now()) {
 }
 
 const secure = {'Cache-Control':'private, no-store', 'X-Content-Type-Options':'nosniff',
-  'Content-Security-Policy':"default-src 'self'; frame-ancestors 'none'; base-uri 'none'"};
+  'Content-Security-Policy':"default-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'"};
 function reply(body, status = 200, extra = {}) {
   return new Response(body, {status, headers: {...secure, ...extra}});
 }
@@ -151,19 +152,23 @@ async function authorized(request, password) {
 export default {
   async fetch(request, env) {
     if (!env.DASHBOARD_PASSWORD) return reply('Dashboard access is being configured.', 503);
-    if (!await authorized(request, env.DASHBOARD_PASSWORD)) {
-      return reply('Sign in to the RICH dashboard.', 401, {'WWW-Authenticate':'Basic realm="RICH dashboard", charset="UTF-8"'});
-    }
     const path = new URL(request.url).pathname;
+    const user = await session(request, env);
+    if (['/login','/logout','/account','/users'].includes(path)) return accountRoute(request, env, reply, user, path);
+    if (!user && path === '/api/refresh' && !await authorized(request, env.DASHBOARD_PASSWORD)) return reply('Sign in to the RICH dashboard.', 401);
+    if (!user && path.startsWith('/api/') && path !== '/api/refresh') return reply('Sign in to the RICH dashboard.', 401);
+    if (!user && !['/api/refresh','/style.css','/rich-logo.svg'].includes(path)) return reply('', 303, {Location:'/login'});
     if (path === '/api/report' && request.method === 'GET') {
       const snapshot = await env.REPORTS.get('snapshot');
       return reply(snapshot || '{"pending":true}', 200, {'Content-Type':'application/json'});
     }
     if (path === '/api/refresh' && request.method === 'POST') {
-      if (!env.REFRESH_KEY || request.headers.get('X-RICH-Refresh') !== env.REFRESH_KEY) return reply('Refresh header required.', 400);
+      if (user && !user.admin) return reply('Only the administrator can refresh the report.', 403);
+      if (user && request.headers.get('Origin') !== new URL(request.url).origin) return reply('Invalid request origin.', 403);
+      if (!user && (!env.REFRESH_KEY || request.headers.get('X-RICH-Refresh') !== env.REFRESH_KEY)) return reply('Refresh header required.', 400);
       try {
         await sync(env);
-        return reply('Refresh complete.');
+        return user ? reply('', 303, {Location:'/'}) : reply('Refresh complete.');
       } catch (error) {
         console.error('Dashboard refresh failed', error.message);
         return reply('ClickUp refresh failed. The last successful report remains available.', 502);

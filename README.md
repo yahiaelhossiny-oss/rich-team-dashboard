@@ -12,16 +12,20 @@ Add the following runtime settings under the Worker’s Variables and Secrets.
 | --- | --- |
 | `CLICKUP_WORKSPACE_ID` | ClickUp workspace ID |
 | `CLICKUP_TOKEN` | Secret from a workspace owner or admin with access to the relevant client spaces and team time entries |
-| `DASHBOARD_PASSWORD` | Strong ASCII password used with username `rich` |
+| `DASHBOARD_PASSWORD` | Administrator password for the `rich` account |
 | `REPORT_MONTHS` | Optional number of months to display, inclusive of the current month. Defaults to 12. |
 | `ROLES_JSON` | Optional JSON object mapping ClickUp member IDs to job titles |
 | `CAPACITY_JSON` | Optional JSON array of monthly allocations, each with `month` (YYYY-MM), `client` (exact reporting name), `memberId` (ClickUp ID) and `hours` (number) |
 | `REFRESH_KEY` | Optional separate secret for one-off refresh requests |
 
-The scheduled refresh starts automatically. To run an initial refresh before the next scheduled run, send a POST to `/api/refresh` using the dashboard’s HTTP Basic authentication and pass the separate refresh key in the `X-RICH-Refresh` header. A failed refresh preserves the previous successful snapshot. Verify the last sync timestamp and reconcile sample totals with ClickUp before sharing access.
+The scheduled refresh starts automatically. Select Sync ClickUp now from the administrator Account page for an immediate refresh. For script access, send a POST to `/api/refresh` using the dashboard’s HTTP Basic authentication and pass the separate refresh key in the `X-RICH-Refresh` header. A failed refresh preserves the previous successful snapshot. Verify the last sync timestamp and reconcile sample totals with ClickUp before sharing access.
 
 ## Reporting rules
 
 Client names come from ClickUp spaces. The RICH and Templates spaces are excluded. Ad-hoc spaces use exact client tags when available and otherwise show a separate unassigned client bucket. Work type comes from a `work type:` time-entry tag, the equivalent task tag, or the task’s list. Unclassified work stays visible. Recorded time is attributed to the Dubai month in which the entry started. Running timers are excluded. Missing allocations display as Unset. For allocations larger than a runtime variable, store the same JSON array under the `capacity` key in the report namespace and leave `CAPACITY_JSON` unset.
 
 The report contains internal staff and client data. Configure all private mappings and credentials through Cloudflare runtime settings. Keep them out of GitHub.
+
+## User accounts
+
+Sign in as `rich`, open Account, and choose Manage users to create a username and temporary password. Users sign in without an email address and change their own password from Account. User accounts have read-only access to the same dashboard reports. Passwords are stored as salted hashes in Workers KV.
