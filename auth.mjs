@@ -10,7 +10,7 @@ const random = () => encode(crypto.getRandomValues(new Uint8Array(16)));
 const escape = value => String(value).replace(/[&<>"']/g, character => ({
   '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
 })[character]);
-const passwordField = (name, label, autocomplete) => '<label>' + label + '<input type="password" name="' + name + '" autocomplete="' + autocomplete + '" maxlength="128" required></label>';
+const passwordField = (name, label, autocomplete, minimum = 0) => '<label>' + label + '<input type="password" name="' + name + '" autocomplete="' + autocomplete + '" maxlength="128"' + (minimum ? ' minlength="' + minimum + '"' : '') + ' required></label>';
 const usernameField = '<label>Username<input name="username" autocomplete="username" maxlength="40" required></label>';
 
 function equal(left, right) {
@@ -77,12 +77,12 @@ function accountPage(reply, user, error = '') {
   return page(reply, 'Change password', link + notice + `<form method="post" action="/account">${passwordField('current','Current password','current-password')}${passwordField('password','New password','new-password')}${passwordField('confirm','Confirm new password','new-password')}<p>Use at least 12 characters.</p><button>Change password</button></form>`, error ? 400 : 200);
 }
 
-async function usersPage(reply, env, error = '') {
+async function usersPage(reply, env, error = '', username = '') {
   const {keys} = await env.REPORTS.list({prefix:'account:', limit:100});
   const list = keys.map(key => '<li>' + escape(key.name.slice('account:'.length)) + '</li>').join('');
   return page(reply, 'Manage users', '<p><a href="/">Back to dashboard</a></p>' +
     (error ? '<p role="alert">' + error + '</p>' : '') +
-    `<form method="post" action="/users">${usernameField}${passwordField('password','Temporary password','new-password')}<p>Use 3–40 characters for the username and at least 12 characters for the password.</p><button>Add user</button></form><h2>Users</h2>` +
+    `<form method="post" action="/users"><label>Username<input name="username" autocomplete="off" minlength="3" maxlength="40" pattern="[A-Za-z0-9][A-Za-z0-9._\\-]{2,39}" value="${escape(username)}" aria-describedby="username-hint" required></label><p id="username-hint">Use 3–40 letters, numbers, dots, underscores or hyphens. Start with a letter or number.</p>${passwordField('password','Temporary password','new-password',12)}<p>Use at least 12 characters for the temporary password.</p><button>Add user</button></form><h2>Users</h2>` +
     (list ? '<ul>' + list + '</ul>' : '<p>No additional users.</p>'), error ? 400 : 200);
 }
 
@@ -113,8 +113,9 @@ export async function accountRoute(request, env, reply, user, path) {
     const form = await request.formData();
     const name = String(form.get('username') || '').trim().toLowerCase();
     const password = String(form.get('password') || '');
-    if (!usernameOk(name) || name === 'rich' || !passwordOk(password)) return usersPage(reply, env, 'Enter a valid username and a password of at least 12 characters.');
-    if (await env.REPORTS.get(accountKey(name))) return usersPage(reply, env, 'That username already exists.');
+    if (!usernameOk(name)) return usersPage(reply, env, 'The username must start with a letter or number and contain only letters, numbers, dots, underscores or hyphens.', name);
+    if (name === 'rich' || await env.REPORTS.get(accountKey(name))) return usersPage(reply, env, 'That username already exists.', name);
+    if (!passwordOk(password)) return usersPage(reply, env, 'The temporary password must contain 12–128 characters.', name);
     await env.REPORTS.put(accountKey(name), JSON.stringify(await accountFor(password)));
     return redirect(reply, '/users');
   }
