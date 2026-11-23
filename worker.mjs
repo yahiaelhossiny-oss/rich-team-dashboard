@@ -197,6 +197,62 @@ async function plannedHours(request, env, user) {
     <div class="plan-grid">${activityFields}</div><button>Save planned hours</button></form></section></main></html>`, 200, {'Content-Type':'text/html; charset=utf-8'});
 }
 
+
+const formatMonth = value => new Intl.DateTimeFormat('en-GB',{month:'long',year:'numeric',timeZone:'UTC'})
+  .format(new Date(value + '-01T00:00:00Z'));
+const formatHours = value => new Intl.NumberFormat('en-GB',{maximumFractionDigits:2}).format(value) + ' h';
+
+function portalTable(columns, rows, empty) {
+  if (!rows.length) return '<p>' + empty + '</p>';
+  const heading = columns.map(value => '<th scope="col">' + escapeHtml(value) + '</th>').join('');
+  const body = rows.map(row => '<tr>' + row.map(value => '<td>' + escapeHtml(value) + '</td>').join('') + '</tr>').join('');
+  return '<div class="scroll"><table><thead><tr>' + heading + '</tr></thead><tbody>' + body + '</tbody></table></div>';
+}
+
+async function clientPortal(request, env, client) {
+  const report = await env.REPORTS.get('snapshot','json');
+  if (!report?.months?.length) return reply('The client report is being prepared.', 503);
+  const params = new URL(request.url).searchParams;
+  const months = [...report.months].sort();
+  const from = params.get('from') ?? months.at(-1);
+  const through = params.get('to') ?? months.at(-1);
+  if (!months.includes(from) || !months.includes(through) || from > through) {
+    return reply('Select a valid reporting period.', 400);
+  }
+  const period = months.filter(month => month >= from && month <= through);
+  const results = await Promise.all(period.map(month => env.REPORTS.get(planKey(month,client),'json')));
+  const plans = new Map();
+  results.forEach((plan,index) => {
+    if (plan?.client !== client || plan.month !== period[index]) return;
+    for (const [label,value] of Object.entries(plan.hours)) plans.set(label,(plans.get(label) || 0) + value);
+  });
+  const counts = new Map();
+  for (const task of report.tasks ?? []) {
+    if (task.client !== client || !period.includes(monthOf(task.created))) continue;
+    const status = String(task.status || 'Unknown').toLowerCase();
+    const type = String(task.statusType || '').toLowerCase();
+    const stage = /cancel|archive|reject|duplicate|won.t do/.test(status) ? 'Closed without delivery' :
+      ['closed','done'].includes(type) || /^(closed|complete|completed|done|delivered|finished|published)$/.test(status) ? 'Completed' :
+      /progress|ongoing|working|active|review|approval|blocked|revisions|feedback|production/.test(status) ? 'In progress' : 'Other or not started';
+    counts.set(stage,(counts.get(stage) || 0) + 1);
+  }
+  const optionList = selected => [...months].reverse().map(month =>
+    '<option value="' + escapeHtml(month) + '"' + (month === selected ? ' selected' : '') + '>' + formatMonth(month) + '</option>').join('');
+  const planRows = [...plans].sort(([a],[b])=>a.localeCompare(b)).map(([activity,hours])=>[activity,formatHours(hours)]);
+  const statusRows = [...counts].sort(([a],[b])=>a.localeCompare(b));
+  return reply(`<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>${escapeHtml(client)} | RICH Client portal</title><link rel="stylesheet" href="/style.css">
+    <header><div class="brand"><img src="/rich-logo.svg" alt="RICH" width="75" height="30"><span aria-hidden="true">/</span> CLIENT PORTAL</div>
+    <div class="header-tools"><a href="/account">Account</a><form action="/logout" method="post"><button>Sign out</button></form></div></header>
+    <main><h1>${escapeHtml(client)}</h1>
+    <form method="get" class="filters"><label>From month<select name="from">${optionList(from)}</select></label>
+    <label>To month<select name="to">${optionList(through)}</select></label><button>Apply</button></form>
+    <section><h2>Delivery summary</h2><p>Current status of tasks created in the selected period.</p>
+    ${portalTable(['Status','Tasks'],statusRows,'No tasks were created in this period.')}</section>
+    <section><h2>Retainer plan</h2>${portalTable(['Activity','Planned hours'],planRows,'There is no retainer plan for the selected period.')}</section>
+    </main></html>`,200,{'Content-Type':'text/html; charset=utf-8'});
+}
+
 async function authorized(request, password) {
   if (!password) return false;
   const encoder = new TextEncoder();
@@ -212,6 +268,11 @@ export default {
     const path = new URL(request.url).pathname;
     const user = await session(request, env);
     if (['/login','/logout','/account','/users'].includes(path)) return accountRoute(request, env, reply, user, path);
+    if (user?.client && !['/style.css','/rich-logo.svg'].includes(path)) {
+      return path === '/' && request.method === 'GET'
+        ? clientPortal(request, env, user.client)
+        : reply('This page is unavailable in the client portal.', 403);
+    }
     if (!user && path === '/api/refresh' && !await authorized(request, env.DASHBOARD_PASSWORD)) return reply('Sign in to the RICH dashboard.', 401);
     if (!user && path.startsWith('/api/') && path !== '/api/refresh') return reply('Sign in to the RICH dashboard.', 401);
     if (!user && !['/api/refresh','/style.css','/rich-logo.svg'].includes(path)) return reply('', 303, {Location:'/login'});

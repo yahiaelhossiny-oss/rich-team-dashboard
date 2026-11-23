@@ -53,7 +53,7 @@ export async function session(request, env) {
       !equal(value.slice(delimiter + 1), await signature(env, body))) return null;
   if (name === 'rich') return version === 'admin' ? {name, version, admin:true} : null;
   const account = await env.REPORTS.get(accountKey(name), 'json');
-  return account?.version === version ? {name, version, admin:false} : null;
+  return account?.version === version ? {name, version, admin:false, client:account.client ?? null} : null;
 }
 
 function redirect(reply, location, cookie) {
@@ -77,12 +77,20 @@ function accountPage(reply, user, error = '') {
   return page(reply, 'Change password', link + notice + `<form method="post" action="/account">${passwordField('current','Current password','current-password')}${passwordField('password','New password','new-password')}${passwordField('confirm','Confirm new password','new-password')}<p>Use at least 12 characters.</p><button>Change password</button></form>`, error ? 400 : 200);
 }
 
+async function availableClients(env) {
+  const report = await env.REPORTS.get('snapshot', 'json');
+  return (report?.clients ?? []).filter(name => !/^ad-hoc|^unassigned client/i.test(name)).sort();
+}
+
 async function usersPage(reply, env, error = '', username = '') {
   const {keys} = await env.REPORTS.list({prefix:'account:', limit:100});
-  const list = keys.map(key => '<li>' + escape(key.name.slice('account:'.length)) + '</li>').join('');
+  const list = keys.map(key => '<li>' + escape(key.name.slice('account:'.length)) +
+    (key.metadata?.client ? ' · Client: ' + escape(key.metadata.client) : ' · Internal') + '</li>').join('');
+  const clients = await availableClients(env);
+  const choices = clients.map(client => '<option value="' + escape(client) + '">Client: ' + escape(client) + '</option>').join('');
   return page(reply, 'Manage users', '<p><a href="/">Back to dashboard</a></p>' +
     (error ? '<p role="alert">' + error + '</p>' : '') +
-    `<form method="post" action="/users"><label>Username<input name="username" autocomplete="off" minlength="3" maxlength="40" pattern="[A-Za-z0-9][A-Za-z0-9._\\-]{2,39}" value="${escape(username)}" aria-describedby="username-hint" required></label><p id="username-hint">Use 3–40 letters, numbers, dots, underscores or hyphens. Start with a letter or number.</p>${passwordField('password','Temporary password','new-password',12)}<p>Use at least 12 characters for the temporary password.</p><button>Add user</button></form><h2>Users</h2>` +
+    `<form method="post" action="/users"><label>Username<input name="username" autocomplete="off" minlength="3" maxlength="40" pattern="[A-Za-z0-9][A-Za-z0-9._\\-]{2,39}" value="${escape(username)}" aria-describedby="username-hint" required></label><p id="username-hint">Use 3–40 letters, numbers, dots, underscores or hyphens. Start with a letter or number.</p>${passwordField('password','Temporary password','new-password',12)}<p>Use at least 12 characters for the temporary password.</p><label>Dashboard access<select name="client" required><option value="" disabled selected>Select access</option><option value="internal">Internal dashboard</option>${choices}</select></label><button>Add user</button></form><h2>Users</h2>` +
     (list ? '<ul>' + list + '</ul>' : '<p>No additional users.</p>'), error ? 400 : 200);
 }
 
@@ -116,7 +124,13 @@ export async function accountRoute(request, env, reply, user, path) {
     if (!usernameOk(name)) return usersPage(reply, env, 'The username must start with a letter or number and contain only letters, numbers, dots, underscores or hyphens.', name);
     if (name === 'rich' || await env.REPORTS.get(accountKey(name))) return usersPage(reply, env, 'That username already exists.', name);
     if (!passwordOk(password)) return usersPage(reply, env, 'The temporary password must contain 12–128 characters.', name);
-    await env.REPORTS.put(accountKey(name), JSON.stringify(await accountFor(password)));
+    const access = String(form.get('client') || '');
+    if (!access) return usersPage(reply, env, 'Select dashboard access.', name);
+    const client = access === 'internal' ? '' : access;
+    if (client && !(await availableClients(env)).includes(client)) return usersPage(reply, env, 'Select an available client.', name);
+    const account = await accountFor(password);
+    if (client) account.client = client;
+    await env.REPORTS.put(accountKey(name), JSON.stringify(account), client ? {metadata:{client}} : undefined);
     return redirect(reply, '/users');
   }
   if (path === '/account') {
@@ -129,7 +143,8 @@ export async function accountRoute(request, env, reply, user, path) {
     const account = await env.REPORTS.get(accountKey(user.name), 'json');
     if (!account || current.length > 128 || !equal(await passwordHash(current, account.salt), account.hash)) return accountPage(reply, user, 'The current password is incorrect.');
     const updated = await accountFor(password);
-    await env.REPORTS.put(accountKey(user.name), JSON.stringify(updated));
+    if (account.client) updated.client = account.client;
+    await env.REPORTS.put(accountKey(user.name), JSON.stringify(updated), updated.client ? {metadata:{client:updated.client}} : undefined);
     return redirect(reply, '/', await sessionCookie(env, {...user, version:updated.version}));
   }
   return reply('Method not allowed', 405);
