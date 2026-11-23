@@ -48,6 +48,7 @@ export default {
   "/style.css": {type: "text/css; charset=utf-8", body: String.raw`
 :root{font-family:system-ui,sans-serif;color:#00162e;background:#ebe9e6}
 *{box-sizing:border-box}body{margin:0}header{background:#00162e;color:#fff;display:flex;justify-content:space-between;align-items:center;gap:1rem;padding:1.2rem max(5vw,1rem)}.brand{display:flex;align-items:center;gap:.55rem;font-weight:850;letter-spacing:.1em}.header-tools{display:flex;align-items:center;justify-content:flex-end;gap:.85rem;flex-wrap:wrap}.header-tools a{color:white}.header-tools button{padding:.3rem .65rem;background:#fff;color:#00162e;border-color:#e1ecfd}.header-tools button:hover{background:#e1ecfd}.export-options{border:0;padding:0;margin:0;display:flex;flex-wrap:wrap;gap:.75rem 1.5rem}.export-options legend{font-weight:650;margin-bottom:.3rem}button:disabled{opacity:.55;cursor:default}.account-panel{max-width:35rem}.account-panel form,.account-panel label{display:grid;gap:.45rem}.account-panel form{gap:.8rem}.account-panel button{justify-self:start}.brand img{display:block;filter:brightness(0) invert(1);object-fit:contain}.brand span{color:#ff6b61}#sync{font-size:.85rem}main{max-width:1350px;margin:auto;padding:2.3rem max(4vw,1rem)}h1{font-size:clamp(2.5rem,6vw,4.8rem);margin:0 0 1.3rem;letter-spacing:-.07em}h2{letter-spacing:-.035em}.filters,.metrics,nav{display:flex;gap:.8rem;flex-wrap:wrap}.filters label{display:grid;gap:.3rem;font-weight:650;font-size:.8rem;flex:1 1 175px;max-width:320px}select,input,button{font:inherit;padding:.65rem .8rem;border:1px solid #005371;border-radius:.5rem;background:white;color:inherit}button{cursor:pointer;font-weight:650}button[aria-pressed=true]{background:#00162e;color:white;border-color:#00162e}.metrics{margin:1.3rem 0}.metric{background:#e1ecfd;border-radius:.8rem;padding:1rem;flex:1 1 160px}.metric strong{display:block;font-size:1.8rem;letter-spacing:-.04em}section{margin:1rem 0;background:white;padding:1rem 1.2rem;border-radius:.8rem}.scroll{overflow:auto}table{width:100%;border-collapse:collapse;text-align:left}th,td{padding:.7rem .6rem;border-bottom:1px solid #e1ecfd;vertical-align:top}th{font-size:.76rem;text-transform:uppercase;letter-spacing:.045em;color:#005371}a{color:#005371}p{color:#005371}.status{display:inline-block;background:#e1ecfd;padding:.2rem .5rem;border-radius:.4rem}.table-filters{display:flex;flex-wrap:wrap;gap:.65rem;margin-bottom:1rem}.table-filters label{display:grid;gap:.3rem}button:focus-visible,select:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid #0085c2;outline-offset:2px}.activity-client{border-top:1px solid #e1ecfd;margin-top:1.5rem;padding-top:.5rem}.activity-client h3{margin-bottom:.25rem}.activity-client p{margin-top:.25rem}.plan-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem;margin:1rem 0}.plan-grid label{display:grid;gap:.4rem}.filters button{align-self:end}#print-report{display:none}#client-export label{display:flex;align-items:center;gap:.4rem}
+.activity-charts{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:1rem;margin:1rem 0 1.7rem}.activity-chart{border:1px solid #e1ecfd;border-radius:.7rem;padding:1rem}.activity-chart h4{margin:0 0 .65rem}.activity-chart p{margin:.4rem 0 .75rem;font-size:.85rem}.activity-bar-group{margin:.65rem 0}.activity-bar-group strong,.activity-bar-line{font-size:.85rem}.activity-bar-line{display:grid;grid-template-columns:4rem minmax(0,1fr) 4.7rem;align-items:center;gap:.4rem;margin-top:.15rem}.activity-bar-line span:last-child{text-align:right}.activity-bar-line progress{width:100%;height:.65rem;appearance:none;border:0;background:#ebe9e6;border-radius:1rem;overflow:hidden;accent-color:#0085c2}.activity-bar-line progress::-webkit-progress-bar{background:#ebe9e6}.activity-bar-line progress.logged::-webkit-progress-value{background:#0085c2}.activity-bar-line progress.retainer::-webkit-progress-value{background:#ff6b61}.activity-bar-line progress.retainer{accent-color:#ff6b61}.activity-doughnut{display:block;width:min(100%,220px);height:auto;margin:.3rem auto .75rem}.activity-legend{list-style:none;padding:0;margin:0}.activity-legend li{display:grid;grid-template-columns:12px minmax(0,1fr) auto;gap:.5rem;align-items:center;padding:.3rem 0;font-size:.85rem}
 @media print{@page{margin:16mm}body{background:white;color:#00162e}header,main>*{display:none!important}main{padding:0;max-width:none}main>#print-report{display:block!important;margin:0;padding:0}#print-report h1{font-size:32pt;margin:8mm 0 2mm}#print-report h2{margin-top:7mm}#print-report .pdf-brand{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #005371;padding-bottom:3mm}#print-report .scroll{overflow:visible}#print-report tr{break-inside:avoid}#print-report h2{break-after:avoid}#print-report th,#print-report td{padding:2.5mm}}
 `},
   "/report.js": {type: "text/javascript; charset=utf-8", body: String.raw`
@@ -152,6 +153,90 @@ function taskView(target, tasks) {
   target.append(el('h2', 'Task details'), controls, details);
 }
 
+const chartColours = ['#0085c2','#005371','#ff6b61','#00162e','#f9c9c9','#839dbd','#a04945','#65acd0','#696663','#b2c9eb','#377680','#986a83','#505288','#9f7e66'];
+
+function activityCharts(types, logged, plan, member) {
+  const charts = el('div',undefined,'activity-charts');
+  const comparison = el('div',undefined,'activity-chart');
+  const breakdown = el('div',undefined,'activity-chart');
+  const entries = types.map(name => ({
+    name, logged:positiveHours(logged.get(name) || 0),
+    planned:Object.hasOwn(plan,name) ? plan[name] : null
+  }));
+  const max = Math.max(1,...entries.flatMap(row => [row.logged,row.planned ?? 0]));
+  comparison.append(el('h4',member ? 'Logged hours by division' : 'Logged vs retainer plan'));
+  if (!member) comparison.append(el('p','Bars use the same scale. Unset means no retainer allowance was entered.'));
+  for (const row of entries) {
+    const group = el('div',undefined,'activity-bar-group');
+    group.append(el('strong',row.name));
+    for (const [label,value,style] of [
+      ['Logged',row.logged,'logged'], ...(!member ? [['Retainer',row.planned,'retainer']] : [])
+    ]) {
+      const line = el('div',undefined,'activity-bar-line');
+      line.append(el('span',label));
+      if (value !== null) {
+        const bar = el('progress',undefined,style);
+        bar.max = max;
+        bar.value = value;
+        bar.setAttribute('aria-hidden','true');
+        line.append(bar);
+      } else line.append(el('span'));
+      line.append(el('span',value === null ? 'Unset' : hours(value)));
+      group.append(line);
+    }
+    comparison.append(group);
+  }
+
+  breakdown.append(el('h4','Share of logged hours by division'));
+  const segments = entries.filter(row => row.logged > 0);
+  const total = segments.reduce((sum,row) => sum + row.logged,0);
+  if (!total) {
+    breakdown.append(el('p','No logged hours for these filters.'));
+  } else {
+    const circle = el('canvas',undefined,'activity-doughnut');
+    circle.width = circle.height = 440;
+    circle.setAttribute('aria-hidden','true');
+    breakdown.append(circle);
+    const ctx = circle.getContext('2d');
+    if (ctx) {
+      let angle = -Math.PI / 2;
+      segments.forEach((row,index) => {
+        const end = angle + 2 * Math.PI * row.logged / total;
+        ctx.beginPath();
+        ctx.arc(220,220,163,angle,end);
+        ctx.strokeStyle = chartColours[index % chartColours.length];
+        ctx.lineWidth = 76;
+        ctx.stroke();
+        angle = end;
+      });
+      ctx.fillStyle = '#00162e';
+      ctx.textAlign = 'center';
+      ctx.font = '700 38px system-ui';
+      ctx.fillText(hours(total),220,219);
+      ctx.font = '25px system-ui';
+      ctx.fillText('Logged',220,255);
+    }
+    const legend = el('ol',undefined,'activity-legend');
+    segments.forEach((row,index) => {
+      const item = el('li');
+      const swatch = el('canvas');
+      swatch.width = swatch.height = 12;
+      swatch.setAttribute('aria-hidden','true');
+      const fill = swatch.getContext('2d');
+      if (fill) {
+        fill.fillStyle = chartColours[index % chartColours.length];
+        fill.fillRect(0,0,12,12);
+      }
+      item.append(swatch,el('span',row.name),el('strong',hours(row.logged) + ' · ' +
+        new Intl.NumberFormat('en',{style:'percent',maximumFractionDigits:1}).format(row.logged / total)));
+      legend.append(item);
+    });
+    breakdown.append(legend);
+  }
+  charts.append(comparison,breakdown);
+  return charts;
+}
+
 function activityReport(target, work, plans, month, client, member) {
   const totals = new Map();
   for (const [, name, type, , duration] of work) {
@@ -187,6 +272,7 @@ function activityReport(target, work, plans, month, client, member) {
         [type, hours(positiveHours(duration)), Object.hasOwn(plan,type) ? hours(plan[type]) : 'Unset', share];
     });
     block.append(table(columns, rows));
+    if (allTypes.length) block.append(activityCharts(allTypes, logged, plan, member));
     target.append(block);
   }
 }
