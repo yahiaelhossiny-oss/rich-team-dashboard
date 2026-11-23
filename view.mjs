@@ -1,4 +1,20 @@
 export default {
+  "/rich-logo.svg": {type: "image/svg+xml; charset=utf-8", body: String.raw`<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Layer_1" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 500 200.3">
+  <!-- Generator: Adobe Illustrator 30.4.0, SVG Export Plug-In . SVG Version: 2.1.4 Build 226)  -->
+  <defs>
+    <style>
+      .st0 {
+        fill: #0a83be;
+      }
+    </style>
+  </defs>
+  <path class="st0" d="M135.84,65.59l-.04.04c0-40.33-33.42-53.95-56.41-53.95H5.44l13.07,37.98v134.13h51.89v-65.13l20.95,65.13,50.53.16-25.59-75.8c8.64-5.49,19.55-17.92,19.55-42.56M74.55,84.74h-4.16v-24.96l4.32.16c11.95.52,10.91,24.96-.16,24.8"/>
+  <rect class="st0" x="144.24" y="11.68" width="51.89" height="172.27"/>
+  <path class="st0" d="M284.72,62.41h16.79l-.36-50.89h-25.95c-47.93,0-70.4,34.47-70.4,86.24s22.51,86.23,70.4,86.23h25.95l.36-50.89h-16.95c-20.23,0-27.86-14.47-27.86-35.35s8.47-35.35,28.02-35.35"/>
+  <polygon class="st0" points="426.56 11.68 374.67 11.68 374.67 72.05 362.04 72.05 362.04 11.68 310.15 11.68 310.15 183.95 362.04 183.95 362.04 123.78 374.67 123.78 374.67 183.95 413.77 183.95 426.56 183.95 439.36 183.95 426.56 145.81 426.56 11.68"/>
+  <polygon class="st0" points="478.31 145.93 439.05 145.93 452 183.95 491.22 183.95 478.31 145.93"/>
+</svg>`},
   "/": {type: "text/html; charset=utf-8", body: String.raw`
 <!doctype html>
 <html lang="en">
@@ -7,7 +23,7 @@ export default {
 <title>RICH | Client delivery</title>
 <link rel="stylesheet" href="/style.css">
 <script type="module" src="/report.js"></script>
-<header><div class="brand">RICH<span> / </span> OPERATIONS</div><div id="sync">Loading ClickUp report…</div></header>
+<header><div class="brand"><img src="/rich-logo.svg" alt="RICH" width="75" height="30"><span aria-hidden="true">/</span> OPERATIONS</div><div id="sync">Loading ClickUp report…</div></header>
 <main>
 <h1>Client delivery</h1>
 <div class="filters">
@@ -28,7 +44,7 @@ export default {
 `},
   "/style.css": {type: "text/css; charset=utf-8", body: String.raw`
 :root{font-family:system-ui,sans-serif;color:#14221d;background:#edf2ed}
-*{box-sizing:border-box}body{margin:0}header{background:#15382c;color:#fff;display:flex;justify-content:space-between;align-items:center;gap:1rem;padding:1.2rem max(5vw,1rem)}.brand{font-weight:850;letter-spacing:.1em}.brand span{color:#bdec85}#sync{font-size:.85rem}main{max-width:1350px;margin:auto;padding:2.3rem max(4vw,1rem)}h1{font-size:clamp(2.5rem,6vw,4.8rem);margin:0 0 1.3rem;letter-spacing:-.07em}h2{letter-spacing:-.035em}.filters,.metrics,nav{display:flex;gap:.8rem;flex-wrap:wrap}.filters label{display:grid;gap:.3rem;font-weight:650;font-size:.8rem;flex:1 1 175px;max-width:320px}select,input,button{font:inherit;padding:.65rem .8rem;border:1px solid #91a497;border-radius:.5rem;background:white;color:inherit}button{cursor:pointer;font-weight:650}button[aria-pressed=true]{background:#15382c;color:white;border-color:#15382c}.metrics{margin:1.3rem 0}.metric{background:#dbead7;border-radius:.8rem;padding:1rem;flex:1 1 160px}.metric strong{display:block;font-size:1.8rem;letter-spacing:-.04em}section{margin:1rem 0;background:white;padding:1rem 1.2rem;border-radius:.8rem}.scroll{overflow:auto}table{width:100%;border-collapse:collapse;text-align:left}th,td{padding:.7rem .6rem;border-bottom:1px solid #e1e9e1;vertical-align:top}th{font-size:.76rem;text-transform:uppercase;letter-spacing:.045em;color:#41594c}a{color:#215b44}p{color:#40574b}.status{display:inline-block;background:#ecf3e8;padding:.2rem .5rem;border-radius:.4rem}.table-filters{display:flex;flex-wrap:wrap;gap:.65rem;margin-bottom:1rem}.table-filters label{display:grid;gap:.3rem}button:focus-visible,select:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid #257454;outline-offset:2px}
+*{box-sizing:border-box}body{margin:0}header{background:#15382c;color:#fff;display:flex;justify-content:space-between;align-items:center;gap:1rem;padding:1.2rem max(5vw,1rem)}.brand{display:flex;align-items:center;gap:.55rem;font-weight:850;letter-spacing:.1em}.brand img{display:block;filter:brightness(0) invert(1);object-fit:contain}.brand span{color:#bdec85}#sync{font-size:.85rem}main{max-width:1350px;margin:auto;padding:2.3rem max(4vw,1rem)}h1{font-size:clamp(2.5rem,6vw,4.8rem);margin:0 0 1.3rem;letter-spacing:-.07em}h2{letter-spacing:-.035em}.filters,.metrics,nav{display:flex;gap:.8rem;flex-wrap:wrap}.filters label{display:grid;gap:.3rem;font-weight:650;font-size:.8rem;flex:1 1 175px;max-width:320px}select,input,button{font:inherit;padding:.65rem .8rem;border:1px solid #91a497;border-radius:.5rem;background:white;color:inherit}button{cursor:pointer;font-weight:650}button[aria-pressed=true]{background:#15382c;color:white;border-color:#15382c}.metrics{margin:1.3rem 0}.metric{background:#dbead7;border-radius:.8rem;padding:1rem;flex:1 1 160px}.metric strong{display:block;font-size:1.8rem;letter-spacing:-.04em}section{margin:1rem 0;background:white;padding:1rem 1.2rem;border-radius:.8rem}.scroll{overflow:auto}table{width:100%;border-collapse:collapse;text-align:left}th,td{padding:.7rem .6rem;border-bottom:1px solid #e1e9e1;vertical-align:top}th{font-size:.76rem;text-transform:uppercase;letter-spacing:.045em;color:#41594c}a{color:#215b44}p{color:#40574b}.status{display:inline-block;background:#ecf3e8;padding:.2rem .5rem;border-radius:.4rem}.table-filters{display:flex;flex-wrap:wrap;gap:.65rem;margin-bottom:1rem}.table-filters label{display:grid;gap:.3rem}button:focus-visible,select:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid #257454;outline-offset:2px}
 `},
   "/report.js": {type: "text/javascript; charset=utf-8", body: String.raw`
 const $ = id => document.getElementById(id);
