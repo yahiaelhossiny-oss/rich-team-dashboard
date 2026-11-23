@@ -148,7 +148,7 @@ function taskView(target, tasks) {
 
 function activityReport(target, work, month, client, member) {
   const totals = new Map();
-  for (const [, name, type, duration] of work) {
+  for (const [, name, type, , duration] of work) {
     if (!totals.has(name)) totals.set(name, new Map());
     const activities = totals.get(name);
     activities.set(type, (activities.get(type) || 0) + duration);
@@ -198,7 +198,7 @@ function render() {
   $('member').value = visibleMembers.some(person => person.id === previousMember) ? previousMember : '';
   const member = $('member').value;
   const logs = scopedLogs.filter(row => !member || row[2] === member);
-  const work = data.byType.filter(row => scoped(row) && (!member || row[4] === member));
+  const work = data.byType.filter(row => scoped(row) && (!member || row[3] === member));
   const tasks = data.tasks.filter(task => (!client || task.client === client) && monthOf(task.created) === month);
   const allocations = data.allocations.filter(item => item.month === month && (!client || item.client === client) && (!member || String(item.memberId) === member));
   const pairs = new Map(logs.map(([, client, person, time]) => [JSON.stringify([person, client]), {person, client, time}]));
